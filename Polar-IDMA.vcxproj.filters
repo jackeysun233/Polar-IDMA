@@ -21,9 +21,18 @@
     <ClCompile Include="IDMA.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="INIT.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDMA.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="INIT.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="global_variables.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
