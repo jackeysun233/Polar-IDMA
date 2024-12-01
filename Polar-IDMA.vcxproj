@@ -135,6 +135,7 @@
     <ClInclude Include="global_variables.h" />
     <ClInclude Include="IDMA.h" />
     <ClInclude Include="INIT.h" />
+    <ClInclude Include="Threadpool.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

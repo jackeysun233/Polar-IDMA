@@ -1,75 +1,85 @@
 #include <vector>
 #include <cmath>
+#include <random>
+#include <iostream>
 #include "IDMA.h"
+#include "global_variables.h"
 
 using namespace std;
 
-void InterLeaver(const vector<vector<int>>& Datain, const vector<vector<int>>& ILidx, vector<vector<int>>& ILData) {
-    for (size_t i = 0; i < Datain[0].size(); ++i) {
-        // Temporary vector for each column in Datain
-        vector<int> Temp = Datain[i];
-        for (size_t j = 0; j < Temp.size(); ++j) {
-            ILData[j][i] = Temp[ILidx[j][i]];
-        }
+void InterLeaver(const vector<vector<double>>& Datain, const vector<vector<int>>& ILidx, vector<vector<double>>& ILData) {
+    // 确保 ILData 已经被清空
+    for (size_t i = 0; i < NUSERS; ++i) {
+        fill(ILData[i].begin(), ILData[i].end(), 0);
     }
-}
 
-void deInterleaver(const vector<vector<int>>& Datain, const vector<vector<int>>& ILidx, vector<vector<int>>& deILData) {
-    // Declare temporary vector
-    vector<int> tempILData(Datain.size(), 0);
-
-    for (size_t i = 0; i < Datain[0].size(); ++i) {
-        // Temporary vector for each column in Datain
-        vector<int> Temp = Datain[i];
-        for (size_t j = 0; j < Temp.size(); ++j) {
-            tempILData[ILidx[j][i]] = Temp[j];
-        }
-        for (size_t j = 0; j < tempILData.size(); ++j) {
-            deILData[j][i] = tempILData[j];
+    // 对每一列进行交织操作
+    for (size_t i = 0; i < FrameLen; ++i) {
+        for (size_t j = 0; j < NUSERS; ++j) {
+            // Temporary vector for each user (column)
+            ILData[j][i] = Datain[j][ILidx[j][i]];  // 将交织后的数据存入ILData
         }
     }
 }
 
 
-void spreader(const vector<int>& inputData, const vector<int>& c, vector<int>& spreadedData) {
-    size_t sf = c.size();
-    size_t n = inputData.size();
-
-    spreadedData.resize(sf * n);
-
-    // Replicating inputData to match spreading factor
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < sf; ++j) {
-            spreadedData[i * sf + j] = inputData[i];
-        }
+void deInterleaver(const vector<vector<double>>& Datain, const vector<vector<int>>& ILidx, vector<vector<double>>& deILData) {
+    // 确保 deILData 已经被清空
+    for (size_t i = 0; i < NUSERS; ++i) {
+        fill(deILData[i].begin(), deILData[i].end(), 0);
     }
 
-    // Multiplying each symbol with the spreading code
-    for (size_t i = 0; i < n * sf; ++i) {
-        spreadedData[i] *= c[i % sf];
-    }
-}
-
-void despreader(const vector<int>& spreadedData, const vector<int>& c, vector<int>& despreadedData) {
-    size_t sf = c.size();
-    size_t n = spreadedData.size() / sf;
-
-    // Reshaping spreadedData into sf x n matrix
-    vector<vector<int>> reshapedData(n, vector<int>(sf));
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < sf; ++j) {
-            reshapedData[i][j] = spreadedData[i * sf + j];
-        }
-    }
-
-    // Despreading each symbol
-    despreadedData.resize(n, 0);
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < sf; ++j) {
-            despreadedData[i] += reshapedData[i][j] * c[j];
+    // 对每一列进行反交织操作
+    for (size_t i = 0; i < FrameLen; ++i) {
+        for (size_t j = 0; j < NUSERS; ++j) {
+            // 根据交织索引将数据恢复到原始位置
+            deILData[j][ILidx[j][i]] = Datain[j][i];
         }
     }
 }
+
+
+
+void spreader(const vector<vector<double>>& inputData, vector<vector<double>>& spreadedData) {
+
+    // 生成伪随机扩频序列
+    vector<int> repCode(SF);
+    for (size_t i = 0; i < SF; ++i) {
+        repCode[i] = 1 - 2 * (i % 2);  // 1-2*mod(0:(SF-1), 2)
+    }
+
+
+    // 对每个用户的信息进行扩频处理
+    for (size_t i = 0; i < NUSERS; ++i) {
+        for (size_t j = 0; j < N; ++j) {
+            // 每个用户的每一行扩频
+            for (size_t k = 0; k < SF; ++k) {
+                spreadedData[i][j * SF + k] = inputData[i][j] * repCode[k];
+            }
+        }
+    }
+}
+
+
+void despreader(const vector<vector<double>>& spreadedData, vector<vector<double>>& despreadedData) {
+
+
+    // 初始化 despreadedData 矩阵，大小为 NUSERS x N
+    despreadedData.resize(NUSERS, vector<double>(N, 0));
+
+    // 对每个用户的数据进行反扩频处理
+    for (size_t i = 0; i < NUSERS; ++i) {
+        for (size_t j = 0; j < N; ++j) {
+            for (size_t k = 0; k < SF; ++k) {
+                despreadedData[i][j] += spreadedData[i][j * SF + k] * (1 - 2 * static_cast<double>(k % 2));  // 伪随机扩频序列
+            }
+        }
+    }
+}
+
+
+
+
 
 
 void calESE(const vector<double>& R, const vector<double>& apLLR, const vector<vector<double>>& H, double noiseVar, vector<double>& extrLLR) {
@@ -117,3 +127,40 @@ void calESE(const vector<double>& R, const vector<double>& apLLR, const vector<v
     }
 }
 
+// BPSK 调制
+void Modulate(const vector<vector<int>>& input_data, vector<vector<double>>& modulated_data) {
+
+
+    // 生成 BPSK 调制信号
+    for (int user = 0; user < NUSERS; ++user) {
+        for (int bit = 0; bit < NBITS; ++bit) {
+            // 对每个比特进行调制
+            modulated_data[user][bit] = (input_data[user][bit] == 0) ? -1.0 : 1.0;
+        }
+    }
+}
+
+// 生成每个用户的交织器索引
+void GenILidx(std::vector<std::vector<int>>& ILidx) {
+    // 清空 ILidx，避免多次调用时重复数据
+    ILidx.clear();
+
+    // 初始化随机数生成器
+    random_device rd;
+    mt19937 rng(rd());
+
+    // 对每个用户生成随机排列
+    for (int x = 0; x < NUSERS; ++x) {
+        // 生成初始索引 0, 1, ..., FrameLen-1
+        std::vector<int> temp(FrameLen);
+        for (int i = 0; i < FrameLen; ++i) {
+            temp[i] = i;
+        }
+
+        // 随机打乱索引
+        shuffle(temp.begin(), temp.end(), rng);
+
+        // 将打乱后的索引存入 ILidx
+        ILidx.push_back(temp);
+    }
+}

@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+using namespace std;
+
 // 全局常量声明
 extern const int NUSERS;     // 活跃用户数量
 extern const int NBITS;      // 每个用户发送的比特数量
@@ -24,7 +26,9 @@ extern std::string filename;   // 数据保存的文件名
 
 // 全局变量声明
 extern std::vector<double> SNR_dB;                         // SNR值向量（dB）
+extern std::vector<double> snr;							   // SNR值（线性）
 extern std::vector<std::vector<double>> BER;               // 存储误码率
 extern std::vector<std::vector<double>> PUPE;              // 存储PUPE（假设为某种性能评估）
+
 
 #endif // GLOBAL_VARIABLES_H
