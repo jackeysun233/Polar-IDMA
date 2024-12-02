@@ -2,6 +2,7 @@
 #include "IDMA.h"
 #include "Threadpool.h"
 #include "INIT.h"
+#include "PolarCode.h"
 #include <iostream>
 #include <string>
 using namespace std;
@@ -11,7 +12,7 @@ using namespace std;
 const int NUSERS = 1;                       // 活跃用户数量
 const int NBITS = 10;                       // 每个用户发送的比特数量
 const int SF = 300;                         // 扩频的倍数
-const int N = 10;                           // 编码后的码字长度
+const int N = 32;                           // 编码后的码字长度
 const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 
@@ -44,6 +45,7 @@ void montecarlosimulation() {
 
     // 声明线程内私有变量
     vector<vector<int>> input_data(NUSERS, vector<int>(NBITS));     // 用户输入的信息
+    vector<vector<int>> encoded_data(NUSERS, vector<int>(N));     // 用户输入的信息
     vector<vector<double>> noise(Nr, vector<double>(FrameLen));// 高斯信道白噪声
     vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen)));// 信道衰落系数
     vector<vector<double>> modulated_data(NUSERS, vector<double>(NBITS));// 调制后的信息
@@ -67,7 +69,14 @@ void montecarlosimulation() {
     GenNoise(noise);
     GenFadingCoff(FadingCoff);
     GenILidx(ILidx);
-
+    PolarCode pc(5, 10, 0, 4, true, false, false, false);
+    for (int k = 0; k < NUSERS; ++k) {
+        std::vector<uint8_t> tmp(input_data[k].size());
+        transform(input_data[k].begin(), input_data[k].end(), tmp.begin(), [](int x) {
+            return x;
+            });
+        pc.encode(tmp);
+    }
     Modulate(input_data, modulated_data);
     spreader(modulated_data, spreaded_data);
     InterLeaver(spreaded_data, ILidx, ILData);
