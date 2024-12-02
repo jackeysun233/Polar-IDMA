@@ -6,23 +6,24 @@
 #include <string>
 using namespace std;
 
-//声明全局变量
+// 声明全局变量
 
-const int NUSERS = 2;                       // 活跃用户数量
+const int NUSERS = 1;                       // 活跃用户数量
 const int NBITS = 10;                       // 每个用户发送的比特数量
 const int SF = 300;                         // 扩频的倍数
 const int N = 10;                           // 编码后的码字长度
 const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 
-const double SNR_BEGIN = -40;
-const double SNR_END = -20;
-const int SNR_NUM = 3;
+const double SNR_BEGIN = -15;
+const double SNR_END = -15;
+const int SNR_NUM = 1;
 
 const int NUM_FRAMES = 100000;              // 帧数量
 const int NUM_PRINT = 100;                  // 打印显示间隔
 
-const int BlockLen = 50;                    // 块衰落的长度
+const bool IsFading = false;                 // 控制衰落模式
+const int BlockLen = 500;                   // 块衰落的长度
 const int IDMAitr = 15;                     // IDMA迭代次数
 
 string filename;                            // 数据保存的文件名
@@ -76,7 +77,7 @@ void montecarlosimulation() {
 
     // 计算不同SNR下的误码率
     for (int i = 0; i < SNR_NUM; ++i) {
-        double noise_variance = 1.0 / pow(10.0, snr[i] / 10.0);    // 计算当前snr下的噪声功率
+        double noise_variance = 1.0 / snr[i];       // 计算当前snr下的噪声功率
 
         channel(ILData, FadingCoff, noise, noise_variance, RxData);
         processMIMOData(RxData, FadingCoff, avg_RxData, avg_FadingCoff);
@@ -90,13 +91,14 @@ void montecarlosimulation() {
 
             spreader(deSpData, spreaded_data);                                      // 扩频
 
-            for (size_t user = 0; user < NUSERS; ++user) {
-                for (size_t i = 0; i < FrameLen; ++i) {
-                    extLLR[user][i] = spreaded_data[user][i] - deILData[user][i];   // 迭代之后做差值
-                }
-            }
+            //for (size_t user = 0; user < NUSERS; ++user) {
+            //    for (size_t i = 0; i < FrameLen; ++i) {
+            //        extLLR[user][i] = spreaded_data[user][i] - deILData[user][i];   // 迭代之后做差值
+            //    }
+            //}
+            extLLR = spreaded_data;
 
-            InterLeaver(extLLR, ILidx, apLLR);                                      // 交织
+            InterLeaver(extLLR, ILidx, apLLR);                                       // 交织
         }
 
         hardDecision(deSpData, output_data, i);                                      // 进行硬判决

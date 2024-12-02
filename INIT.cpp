@@ -13,8 +13,8 @@ void GenSNR() {
     // 计算 SNR 的步长
     double step = (SNR_NUM > 1) ? (SNR_END - SNR_BEGIN) / (SNR_NUM - 1) : 0.0;
 
-    // 初始化 SNR 值向量
-    vector<double> snr(SNR_NUM, 0.0);
+    //// 初始化 SNR 值向量
+    //vector<double> snr(SNR_NUM, 0.0);
 
     // 计算 SNR 的具体取值
     for (int i = 0; i < SNR_NUM; ++i) {
@@ -73,18 +73,28 @@ void GenFadingCoff(vector<vector<vector<double>>>& FadingCoff) {
     // 初始化 FadingCoff 矩阵，大小为 Nr x NUSERS x FrameLen
     FadingCoff.resize(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen, 0.0)));
 
-    // 为每个天线和每个用户生成衰落系数
-    for (int nr = 0; nr < Nr; ++nr) {
-        for (int user = 0; user < NUSERS; ++user) {
-            // 每个块的衰落系数
-            uniform_real_distribution<double> uniformDist(0.0, 1.0);
-            for (int block = 0; block < num_blocks; ++block) {
-                double U = uniformDist(rng);
-                double h = sqrt(-2.0 * log(U)); // 瑞利分布的生成方式
+    // 如果 IsFading 为 false，所有衰落系数设置为 1
+    if (!IsFading) {
+        for (int nr = 0; nr < Nr; ++nr) {
+            for (int user = 0; user < NUSERS; ++user) {
+                fill(FadingCoff[nr][user].begin(), FadingCoff[nr][user].end(), 1.0);
+            }
+        }
+    }
+    else {
+        // 为每个天线和每个用户生成衰落系数
+        for (int nr = 0; nr < Nr; ++nr) {
+            for (int user = 0; user < NUSERS; ++user) {
+                // 每个块的衰落系数
+                uniform_real_distribution<double> uniformDist(0.0, 1.0);
+                for (int block = 0; block < num_blocks; ++block) {
+                    double U = uniformDist(rng);
+                    double h = sqrt(-2.0 * log(U)); // 瑞利分布的生成方式
 
-                // 填充对应的衰落系数
-                for (int i = block * BlockLen; i < (block + 1) * BlockLen && i < FrameLen; ++i) {
-                    FadingCoff[nr][user][i] = h; // 用生成的衰落系数填充每个用户的每个符号
+                    // 填充对应的衰落系数
+                    for (int i = block * BlockLen; i < (block + 1) * BlockLen && i < FrameLen; ++i) {
+                        FadingCoff[nr][user][i] = h; // 用生成的衰落系数填充每个用户的每个符号
+                    }
                 }
             }
         }
