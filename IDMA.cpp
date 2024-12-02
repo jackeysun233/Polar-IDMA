@@ -82,29 +82,25 @@ void despreader(const vector<vector<double>>& spreadedData, vector<vector<double
 
 
 
-void calESE(const vector<double>& R, const vector<double>& apLLR, const vector<vector<double>>& H, double noiseVar, vector<double>& extrLLR) {
-    size_t H_rows = H.size();
-    size_t H_cols = H[0].size();
+void calESE(const vector<double>& R,
+    const vector<vector<double>>& apLLR,
+    const vector<vector<double>>& H,
+    double noiseVar,
+    vector<vector<double>>& extrLLR) {
 
-    // 如果不是胖矩阵（H_rows >= H_cols），则转置
-    vector<vector<double>> H_transposed(H_cols, vector<double>(H_rows));
-    if (H_rows >= H_cols) {
-        for (size_t i = 0; i < H_rows; ++i) {
-            for (size_t j = 0; j < H_cols; ++j) {
-                H_transposed[j][i] = H[i][j];
-            }
-        }
-    }
-    else {
-        H_transposed = H;
-    }
+    size_t H_rows = H.size();        // H 的行数
+    size_t H_cols = H[0].size();     // H 的列数
 
     // 初始化均值和方差
-    vector<double> avgX(H_cols);
-    vector<double> varX(H_cols);
+    vector<vector<double>> avgX(H_rows, vector<double>(H_cols));
+    vector<vector<double>> varX(H_rows, vector<double>(H_cols));
+
+    // 计算均值和方差
     for (size_t i = 0; i < H_cols; ++i) {
-        avgX[i] = tanh(apLLR[i] / 2);
-        varX[i] = 1 - avgX[i] * avgX[i];
+        for (size_t j = 0; j < H_rows; ++j) {
+            avgX[j][i] = tanh(apLLR[j][i] / 2);  // 使用 apLLR[j][i] 来计算 avgX
+            varX[j][i] = 1 - avgX[j][i] * avgX[j][i];  // 计算方差
+        }
     }
 
     // 计算接收信号 r 的均值和方差
@@ -112,20 +108,27 @@ void calESE(const vector<double>& R, const vector<double>& apLLR, const vector<v
     vector<double> varR(H_cols, 0.0);
     for (size_t i = 0; i < H_cols; ++i) {
         for (size_t j = 0; j < H_rows; ++j) {
-            avgR[i] += avgX[j] * H_transposed[i][j];
-            varR[i] += varX[j] * H_transposed[i][j] * H_transposed[i][j];
+            avgR[i] += avgX[j][i] * H[j][i];  // 根据 H 的列计算 avgR
+            varR[i] += varX[j][i] * H[j][i] * H[j][i];  // 计算 varR
         }
-        varR[i] += noiseVar;
+        varR[i] += noiseVar;  // 加上噪声方差
     }
 
-    // 计算 ESE
-    extrLLR.resize(H_cols);
+    // 计算 ESE (Extrinsic Log-Likelihood Ratio)
+    extrLLR.resize(H_rows, vector<double>(H_cols)); // extrLLR 是二维数组
     for (size_t i = 0; i < H_cols; ++i) {
-        double a = R[i] - avgR[i] + H_transposed[i][i] * avgX[i];
-        double b = varR[i] - H_transposed[i][i] * H_transposed[i][i] * varX[i];
-        extrLLR[i] = 2 * H_transposed[i][i] * (a / b);
+        for (size_t j = 0; j < H_rows; ++j) {
+            // 计算 a 和 b
+            double a = R[i] - avgR[i] + H[j][i] * avgX[j][i];
+            double b = varR[i] - H[j][i] * H[j][i] * varX[j][i];
+
+            // 计算 extrLLR
+            extrLLR[j][i] = 2 * H[j][i] * (a / b);
+        }
     }
 }
+
+
 
 // BPSK 调制
 void Modulate(const vector<vector<int>>& input_data, vector<vector<double>>& modulated_data) {
@@ -164,3 +167,124 @@ void GenILidx(std::vector<std::vector<int>>& ILidx) {
         ILidx.push_back(temp);
     }
 }
+
+// Channel函数：负责接收数据处理（衰落、叠加噪声）
+void channel(const vector<vector<double>>& ILData,
+    const vector<vector<vector<double>>>& FadingCoff,
+    const vector<vector<double>>& noise,
+    double noise_variance,
+    vector<vector<double>>& RxData) {
+
+    // 对每个天线进行处理
+    for (int nr = 0; nr < Nr; ++nr) {
+        // 初始化接收数据
+        vector<double> receivedData(FrameLen, 0.0);
+
+        // 对每个用户进行信号叠加
+        for (int user = 0; user < NUSERS; ++user) {
+            // 加上衰落系数h，FadingCoff[nr][user]为该天线和用户的衰落系数
+            for (int i = 0; i < FrameLen; ++i) {
+                receivedData[i] += FadingCoff[nr][user][i] * ILData[user][i];
+            }
+        }
+
+        // 为接收到的数据添加噪声，考虑噪声功率的调整
+        for (int i = 0; i < FrameLen; ++i) {
+            receivedData[i] += sqrt(noise_variance) * noise[nr][i]; // 调整噪声幅值
+        }
+
+        // 将接收到的数据存储到RxData中
+        for (int i = 0; i < FrameLen; ++i) {
+            RxData[nr][i] = receivedData[i];
+        }
+    }
+}  
+
+// 处理MIMO数据，计算接收数据和衰落系数的平均值
+void processMIMOData(const vector<vector<double>>& RxData,
+    const vector<vector<vector<double>>>& FadingCoff,
+    vector<double>& avg_RxData,
+    vector<vector<double>>& avg_FadingCoff) {
+
+    // 对接收数据进行平均处理
+    for (int i = 0; i < FrameLen; ++i) {
+        double sum = 0.0;
+        for (int nr = 0; nr < Nr; ++nr) {
+            sum += RxData[nr][i];
+        }
+        avg_RxData[i] = sum / Nr;  // 求平均值
+    }
+
+    // 对每个符号时刻的FadingCoff进行平均处理
+    for (int user = 0; user < NUSERS; ++user) {
+        for (int i = 0; i < FrameLen; ++i) {
+            double sum = 0.0;
+            for (int nr = 0; nr < Nr; ++nr) {
+                sum += FadingCoff[nr][user][i];
+            }
+            avg_FadingCoff[user][i] = sum / Nr;  // 求平均值
+        }
+    }
+}
+
+void hardDecision(const vector<vector<double>>& deSpData,
+    vector<vector<vector<int>>>& output_data,
+    int i) {  
+    for (size_t user = 0; user < NUSERS; ++user) {
+        for (size_t bit = 0; bit < NBITS; ++bit) {
+            // 对每个接收到的符号进行硬判决
+            if (deSpData[user][bit] > 0) {
+                output_data[i][user][bit] = 1;  // 判决为1
+            }
+            else {
+                output_data[i][user][bit] = 0;  // 判决为0
+            }
+        }
+    }
+}
+
+
+void calcError(const vector<vector<vector<int>>>& output_data,
+    const vector<vector<int>>& input_data,
+    int sim) {
+    int total_bits = NUSERS * NBITS;  // 总比特数量
+
+    for (int snr = 0; snr < SNR_NUM; ++snr) {
+        int bit_errors = 0;  // 当前 SNR 的比特错误数量
+        int block_errors = 0; // 当前 SNR 的块错误数量
+
+        // 对每个用户进行误差计算
+        for (int user = 0; user < NUSERS; ++user) {
+            int user_bit_errors = 0; // 当前用户的比特错误数量
+
+            // 获取 output_data 中的判决数据和 input_data 中的真实数据
+            const vector<int>& estimated_codeword = output_data[snr][user];
+            const vector<int>& true_codeword = input_data[user];
+
+            // 逐位比较 estimated_codeword 和 true_codeword
+            for (int bit = 0; bit < NBITS; ++bit) {
+                if (estimated_codeword[bit] != true_codeword[bit]) {
+                    user_bit_errors++; // 记录比特错误
+                }
+            }
+
+            // 如果存在比特错误，则计入块错误数量
+            if (user_bit_errors > 0) {
+                block_errors++;
+            }
+
+            // 累加比特错误数量
+            bit_errors += user_bit_errors;
+        }
+
+        // 计算并更新 BER 和 PUPE
+        BER[snr][sim] = static_cast<double>(bit_errors) / total_bits;
+        PUPE[snr][sim] = static_cast<double>(block_errors) / NUSERS;
+    }
+}
+
+
+
+
+
+

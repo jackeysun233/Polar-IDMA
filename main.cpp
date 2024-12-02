@@ -8,7 +8,7 @@ using namespace std;
 
 //声明全局变量
 
-const int NUSERS = 1;                       // 活跃用户数量
+const int NUSERS = 2;                       // 活跃用户数量
 const int NBITS = 10;                       // 每个用户发送的比特数量
 const int SF = 300;                         // 扩频的倍数
 const int N = 10;                           // 编码后的码字长度
@@ -22,7 +22,8 @@ const int SNR_NUM = 3;
 const int NUM_FRAMES = 100000;              // 帧数量
 const int NUM_PRINT = 100;                  // 打印显示间隔
 
-const int BlockLen = 50;                  // 块衰落的长度
+const int BlockLen = 50;                    // 块衰落的长度
+const int IDMAitr = 15;                     // IDMA迭代次数
 
 string filename;                            // 数据保存的文件名
 
@@ -42,7 +43,7 @@ atomic<int> cnt(0);                         // 声明全局变量，存储仿真的次数
 //
 //    // 声明线程内私有变量
 //    vector<vector<int>> input_data(NUSERS, vector<int>(NBITS));     // 用户输入的信息
-//    vector<vector<double>> noise_parity(Nr,vector<double>(FrameLen));// 高斯信道白噪声
+//    vector<vector<double>> noise(Nr,vector<double>(FrameLen));// 高斯信道白噪声
 //    vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(NBITS)));// 信道衰落系数
 //    vector<vector<double>> modulated_data(NUSERS, vector<double>(NBITS));// 调制后的信息
 //    vector<vector<int>> ILidx(NUSERS, vector<int>(NBITS));// 随机交织器
@@ -51,7 +52,7 @@ atomic<int> cnt(0);                         // 声明全局变量，存储仿真的次数
 //
 //    // 初始化程序
 //    GenMessage(input_data);
-//    GenNoise(noise_parity);
+//    GenNoise(noise);
 //    GenFadingCoff(FadingCoff);
 //    GenILidx(ILidx);
 //
@@ -109,19 +110,27 @@ int main() {
 
     // 声明线程内私有变量
     vector<vector<int>> input_data(NUSERS, vector<int>(NBITS));     // 用户输入的信息
-    vector<vector<double>> noise_parity(Nr, vector<double>(FrameLen));// 高斯信道白噪声
+    vector<vector<double>> noise(Nr, vector<double>(FrameLen));// 高斯信道白噪声
     vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen)));// 信道衰落系数
     vector<vector<double>> modulated_data(NUSERS, vector<double>(NBITS));// 调制后的信息
     vector<vector<int>> ILidx(NUSERS, vector<int>(NBITS));// 随机交织器
     vector<vector<double>> spreaded_data(NUSERS, vector<double>(FrameLen));// 扩频后的数据
     vector<vector<double>> ILData(NUSERS, vector<double>(FrameLen));// 交织后的数据
+    vector<vector<double>> RxData(Nr, vector<double>(FrameLen));// 接收机的接收数据
+    vector<double> avg_RxData(FrameLen);// 均衡后的接收机数据
+    vector<vector<double>> avg_FadingCoff(NUSERS, vector<double>(FrameLen));// 均衡后的衰落系数
+    vector<vector<double>> apLLR(NUSERS,vector<double>(FrameLen,0.0));// ESE输入软信息
+    vector<vector<double>> extrLLR(NUSERS, vector<double>(FrameLen, 0.0));// ESE输出软信息
 
-    vector<vector<double>> despreadedData(NUSERS, vector<double>(N));// 解扩频后的数据
+    vector<vector<double>> deSpData(NUSERS, vector<double>(N));// 解扩频后的数据
     vector<vector<double>> deILData(NUSERS, vector<double>(FrameLen));// 解交织后的数据
+
+    vector<vector<double>> extLLR(NUSERS, vector<double>(FrameLen));
+    vector<vector<vector<int>>> output_data(SNR_NUM, vector<vector<int>>(NUSERS, vector<int>(NBITS)));// 用户输入的信息
 
     // 初始化程序
     GenMessage(input_data);
-    GenNoise(noise_parity);
+    GenNoise(noise);
     GenFadingCoff(FadingCoff);
     GenILidx(ILidx);
 
@@ -136,8 +145,32 @@ int main() {
     for (int i = 0; i < SNR_NUM; ++i) {
         double noise_variance = 1.0 / pow(10.0, snr[i] / 10.0);    // 计算当前snr下的噪声功率
 
+        channel(ILData, FadingCoff, noise, noise_variance, RxData);
+        processMIMOData(RxData, FadingCoff, avg_RxData, avg_FadingCoff);
 
+        // IDMA译码器循环
+        for (int r = 0; r < IDMAitr; ++r) {
+
+            calESE(avg_RxData, apLLR, avg_FadingCoff, noise_variance, extrLLR);     // 计算ESE
+            deInterleaver(extrLLR,ILidx,deILData);                                  // 解交织
+            despreader(deILData,deSpData);                                          // 解扩频
+
+            spreader(deSpData, spreaded_data);                                      // 扩频
+
+            for (size_t user = 0; user < NUSERS; ++user) {
+                for (size_t i = 0; i < FrameLen; ++i) {
+                    extLLR[user][i] = spreaded_data[user][i] - deILData[user][i];   // 迭代之后做差值
+                }
+            }
+
+            InterLeaver(extLLR, ILidx, apLLR);                                      // 交织
+        }
+
+        hardDecision(deSpData, output_data,i);                                      // 进行硬判决
     }
+
+    calcError(output_data,input_data,1);
+
 
     return 0; 
 }
