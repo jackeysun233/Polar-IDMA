@@ -137,9 +137,9 @@ void Modulate(const vector<vector<int>>& input_data, vector<vector<double>>& mod
 
     // 生成 BPSK 调制信号
     for (int user = 0; user < NUSERS; ++user) {
-        for (int bit = 0; bit < NBITS; ++bit) {
+        for (int bit = 0; bit < input_data[0].size(); ++bit) {
             // 对每个比特进行调制
-            modulated_data[user][bit] = (input_data[user][bit] == 0) ? -1.0 : 1.0;
+            modulated_data[user][bit] = (input_data[user][bit] == 0) ? 1.0 : -1.0;
         }
     }
 }
@@ -304,6 +304,20 @@ void ChannelEncode(const vector<vector<int>>& input_data, PolarCode& pc, vector<
     }
 }
 
+// Polar的译码器
+void ChannelDecoder(const vector<vector<double>>& deSpData,
+    vector<vector<vector<int>>>& output_data,
+    int i, PolarCode& pc) {
+    for (size_t user = 0; user < NUSERS; ++user) {
+        // 调用PolarCode的SCL译码器
+        auto decoded = pc.decode_scl_llr(deSpData[user], L); // 假设list_size为8
+
+        for (size_t bit = 0; bit < NBITS; ++bit) {
+            // 将译码结果转换为int并存入output_data
+            output_data[i][user][bit] = static_cast<int>(decoded[bit]);
+        }
+    }
+}
 
 
 

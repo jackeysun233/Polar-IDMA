@@ -129,10 +129,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="PolarCode.cpp" />
     <ClCompile Include="IDMA.cpp" />
     <ClCompile Include="INIT.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PolarCode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global_variables.h" />

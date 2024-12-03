@@ -13,6 +13,7 @@ extern const int SF;         // 扩频的倍数
 extern const int Nr;         // 天线数量
 extern const int N;			 // 编码后的码字长度
 extern const int FrameLen;   // 总的码字的长度
+extern const int L;
 
 extern const double SNR_BEGIN;  // SNR的开始值
 extern const double SNR_END;    // SNR的结束值

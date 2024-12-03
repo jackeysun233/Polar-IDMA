@@ -18,7 +18,7 @@ void PolarCode::compute_weights(std::vector<int>& weights) {
 }
 
 void PolarCode::sort_channel_orders(std::vector<double>& channel_vec, const std::vector<int>& weights) {
-    // æ’åºé™åº
+    // ÅÅĞò½µĞò
     std::sort(_channel_order_descending.begin(), _channel_order_descending.end(),
         [&](int i1, int i2) {
             if (weights[i1] != weights[i2]) {
@@ -27,7 +27,7 @@ void PolarCode::sort_channel_orders(std::vector<double>& channel_vec, const std:
             return channel_vec[_bit_rev_order[i1]] < channel_vec[_bit_rev_order[i2]];
         });
 
-    // æ’åºå‡åº
+    // ÅÅĞòÉıĞò
     std::sort(_channel_order_ascending.begin(), _channel_order_ascending.end(),
         [&](int i1, int i2) {
             if (weights[i1] != weights[i2]) {
@@ -38,16 +38,16 @@ void PolarCode::sort_channel_orders(std::vector<double>& channel_vec, const std:
 }
 
 void PolarCode::initialize_frozen_bits() {
-    // é¢„åˆ†é…å¤§å°å¹¶åˆå§‹åŒ–
+    // Ô¤·ÖÅä´óĞ¡²¢³õÊ¼»¯
     _channel_order_descending.resize(_block_length);
     _channel_order_ascending.resize(_block_length);
-    _frozen_bits.resize(_block_length, 1); // é»˜è®¤å†»ç»“æ¯”ç‰¹ä¸º1
+    _frozen_bits.resize(_block_length, 1); // Ä¬ÈÏ¶³½á±ÈÌØÎª1
 
     if (!_5G) {
-        // ä½¿ç”¨æ„é€ å‡½æ•°ç›´æ¥åˆå§‹åŒ–
+        // Ê¹ÓÃ¹¹Ôìº¯ÊıÖ±½Ó³õÊ¼»¯
         std::vector<double> channel_vec(_block_length, _design_epsilon);
 
-        // è¿­ä»£æ›´æ–° channel_vec
+        // µü´ú¸üĞÂ channel_vec
         for (uint8_t iteration = 0; iteration < _n; ++iteration) {
             uint32_t increment = 1u << iteration;
             for (uint32_t j = 0; j < increment; ++j) {
@@ -61,20 +61,20 @@ void PolarCode::initialize_frozen_bits() {
                 }
             }
         }
-        
+
         std::iota(_channel_order_descending.begin(), _channel_order_descending.end(), 0);
         std::iota(_channel_order_ascending.begin(), _channel_order_ascending.end(), 0);
 
         if (_RM) {
-            // è®¡ç®—æƒé‡
+            // ¼ÆËãÈ¨ÖØ
             std::vector<int> weights;
             compute_weights(weights);
 
-            // æ’åº
+            // ÅÅĞò
             sort_channel_orders(channel_vec, weights);
         }
         else {
-            // æ³¨æ„æ¯”ç‰¹åè½¬
+            // ×¢Òâ±ÈÌØ·´×ª
             std::sort(_channel_order_descending.begin(), _channel_order_descending.end(),
                 [&](int i1, int i2) { return channel_vec[_bit_rev_order[i1]] < channel_vec[_bit_rev_order[i2]]; });
 
@@ -83,7 +83,7 @@ void PolarCode::initialize_frozen_bits() {
         }
     }
     else { // _5G
-        // ä½¿ç”¨é™æ€å¸¸é‡æ•°ç»„åˆå§‹åŒ– _Qï¼Œé¿å…æ¯æ¬¡è°ƒç”¨å‡½æ•°æ—¶éƒ½é‡æ–°èµ‹å€¼
+        // Ê¹ÓÃ¾²Ì¬³£Á¿Êı×é³õÊ¼»¯ _Q£¬±ÜÃâÃ¿´Îµ÷ÓÃº¯ÊıÊ±¶¼ÖØĞÂ¸³Öµ
         static const std::vector<int> Q_INIT = { 0,1,2,4,8,16,32,3,5,64,9,6,17,10,18,128,12,33,65,20,256,34,24,36,7,129,66,512,11,40,68,130,19,13,48,14,72,257,21,132,35,258,26,513,80,37,25,22,136,260,264,38,514,96,67,41,144,28,69,42,516,49,74,272,160,520,288,528,192,544,70,44,131,81,50,73,15,320,133,52,23,134,384,76,137,82,56,27,97,39,259,84,138,145,261,29,43,98,515,88,140,30,146,71,262,265,161,576,45,100,640,51,148,46,75,266,273,517,104,162,53,193,152,77,164,768,268,274,518,54,83,57,521,112,135,78,289,194,85,276,522,58,168,139,99,86,60,280,89,290,529,524,196,141,101,147,176,142,530,321,31,200,90,545,292,322,532,263,149,102,105,304,296,163,92,47,267,385,546,324,208,386,150,153,165,106,55,328,536,577,548,113,154,79,269,108,578,224,166,519,552,195,270,641,523,275,580,291,59,169,560,114,277,156,87,197,116,170,61,531,525,642,281,278,526,177,293,388,91,584,769,198,172,120,201,336,62,282,143,103,178,294,93,644,202,592,323,392,297,770,107,180,151,209,284,648,94,204,298,400,608,352,325,533,155,210,305,547,300,109,184,534,537,115,167,225,326,306,772,157,656,329,110,117,212,171,776,330,226,549,538,387,308,216,416,271,279,158,337,550,672,118,332,579,540,389,173,121,553,199,784,179,228,338,312,704,390,174,554,581,393,283,122,448,353,561,203,63,340,394,527,582,556,181,295,285,232,124,205,182,643,562,286,585,299,354,211,401,185,396,344,586,645,593,535,240,206,95,327,564,800,402,356,307,301,417,213,568,832,588,186,646,404,227,896,594,418,302,649,771,360,539,111,331,214,309,188,449,217,408,609,596,551,650,229,159,420,310,541,773,610,657,333,119,600,339,218,368,652,230,391,313,450,542,334,233,555,774,175,123,658,612,341,777,220,314,424,395,673,583,355,287,183,234,125,557,660,616,342,316,241,778,563,345,452,397,403,207,674,558,785,432,357,187,236,664,624,587,780,705,126,242,565,398,346,456,358,405,303,569,244,595,189,566,676,361,706,589,215,786,647,348,419,406,464,680,801,362,590,409,570,788,597,572,219,311,708,598,601,651,421,792,802,611,602,410,231,688,653,248,369,190,364,654,659,335,480,315,221,370,613,422,425,451,614,543,235,412,343,372,775,317,222,426,453,237,559,833,804,712,834,661,808,779,617,604,433,720,816,836,347,897,243,662,454,318,675,618,898,781,376,428,665,736,567,840,625,238,359,457,399,787,591,678,434,677,349,245,458,666,620,363,127,191,782,407,436,626,571,465,681,246,707,350,599,668,790,460,249,682,573,411,803,789,709,365,440,628,689,374,423,466,793,250,371,481,574,413,603,366,468,655,900,805,615,684,710,429,794,252,373,605,848,690,713,632,482,806,427,904,414,223,663,692,835,619,472,455,796,809,714,721,837,716,864,810,606,912,722,696,377,435,817,319,621,812,484,430,838,667,488,239,378,459,622,627,437,380,818,461,496,669,679,724,841,629,351,467,438,737,251,462,442,441,469,247,683,842,738,899,670,783,849,820,728,928,791,367,901,630,685,844,633,711,253,691,824,902,686,740,850,375,444,470,483,415,485,905,795,473,634,744,852,960,865,693,797,906,715,807,474,636,694,254,717,575,913,798,811,379,697,431,607,489,866,723,486,908,718,813,476,856,839,725,698,914,752,868,819,814,439,929,490,623,671,739,916,463,843,381,497,930,821,726,961,872,492,631,729,700,443,741,845,920,382,822,851,730,498,880,742,445,471,635,932,687,903,825,500,846,745,826,732,446,962,936,475,853,867,637,907,487,695,746,828,753,854,857,504,799,255,964,909,719,477,915,638,748,944,869,491,699,754,858,478,968,383,910,815,976,870,917,727,493,873,701,931,756,860,499,731,823,922,874,918,502,933,743,760,881,494,702,921,501,876,847,992,447,733,827,934,882,937,963,747,505,855,924,734,829,965,938,884,506,749,945,966,755,859,940,830,911,871,639,888,479,946,750,969,508,861,757,970,919,875,862,758,948,977,923,972,761,877,952,495,703,935,978,883,762,503,925,878,735,993,885,939,994,980,926,764,941,967,886,831,947,507,889,984,751,942,996,971,890,509,949,973,1000,892,950,863,759,1008,510,979,953,763,974,954,879,981,982,927,995,765,956,887,985,997,986,943,891,998,766,511,988,1001,951,1002,893,975,894,1009,955,1004,1010,957,983,958,987,1012,999,1016,767,989,1003,990,1005,959,1011,1013,895,1006,1014,1017,1018,991,1020,1007,1015,1019,1021,1022,1023 };
 
         _Q = Q_INIT;
@@ -115,7 +115,7 @@ void PolarCode::initialize_frozen_bits() {
 
     uint32_t effective_info_length = _info_length + _crc_size;
 
-    // è®¾ç½®å†»ç»“æ¯”ç‰¹ï¼Œä½¿ç”¨ operator[] æ›¿ä»£ at()
+    // ÉèÖÃ¶³½á±ÈÌØ£¬Ê¹ÓÃ operator[] Ìæ´ú at()
     for (uint32_t i = 0; i < effective_info_length; ++i) {
         _frozen_bits[_channel_order_descending[i]] = 0;
     }
@@ -123,7 +123,7 @@ void PolarCode::initialize_frozen_bits() {
         _frozen_bits[_channel_order_descending[i]] = 1;
     }
 
-    // ä½¿ç”¨ç°ä»£éšæœºæ•°ç”Ÿæˆå™¨
+    // Ê¹ÓÃÏÖ´úËæ»úÊıÉú³ÉÆ÷
     std::mt19937 rng(std::random_device{}());
     std::uniform_int_distribution<int> dist(0, 1);
     std::uniform_int_distribution<int> pos_dist(0, _info_length - 1);
@@ -131,14 +131,14 @@ void PolarCode::initialize_frozen_bits() {
 
     for (auto& row : _crc_matrix) {
         bool all_zero = true;
-        // ç”Ÿæˆéšæœºä½
+        // Éú³ÉËæ»úÎ»
         for (auto& bit : row) {
             bit = static_cast<uint8_t>(dist(rng));
             if (bit != 0) {
                 all_zero = false;
             }
         }
-        // å¦‚æœè¯¥è¡Œå…¨ä¸º0ï¼Œéšæœºé€‰æ‹©ä¸€ä¸ªä½ç½®è®¾ç½®ä¸º1
+        // Èç¹û¸ÃĞĞÈ«Îª0£¬Ëæ»úÑ¡ÔñÒ»¸öÎ»ÖÃÉèÖÃÎª1
         if (all_zero) {
             int pos = pos_dist(rng);
             row[pos] = 1;
@@ -175,7 +175,7 @@ void PolarCode::initialize_frozen_bits() {
             return n_t++; });
 
         if (_RM) {
-            // è®°å½•è¡Œé‡
+            // ¼ÇÂ¼ĞĞÖØ
             std::vector<int> weights(_block_length);
             weights[0] = 1;
             weights[1] = 2;
@@ -186,9 +186,9 @@ void PolarCode::initialize_frozen_bits() {
                 }
             }
 
-            // æ³¨æ„å·´æ°å‚æ•°æ„é€ è¦åè½¬æ¯”ç‰¹ï¼Œå› ä¸ºæ˜¯_design_epsilonæ˜¯awgnçš„å‚æ•°å¾€é‡Œé¢ç®—ï¼Œè€Œç¼–ç æ˜¯ä»é‡Œé¢å¾€å¤–é¢ç¼–ç 
-            // ç¼–ç çš„å›¾åˆšå¥½æ˜¯åç€çš„ï¼Œæ‰€ä»¥è¦æ¯”ç‰¹ç¿»è½¬
-            // RMç ä¸éœ€è¦ç¿»è½¬
+            // ×¢Òâ°ÍÊÏ²ÎÊı¹¹ÔìÒª·´×ª±ÈÌØ£¬ÒòÎªÊÇ_design_epsilonÊÇawgnµÄ²ÎÊıÍùÀïÃæËã£¬¶ø±àÂëÊÇ´ÓÀïÃæÍùÍâÃæ±àÂë
+            // ±àÂëµÄÍ¼¸ÕºÃÊÇ·´×ÅµÄ£¬ËùÒÔÒª±ÈÌØ·­×ª
+            // RMÂë²»ĞèÒª·­×ª
             std::sort(std::begin(_channel_order_descending),
                 std::end(_channel_order_descending),
                 [&](int i1, int i2) {
@@ -273,17 +273,17 @@ void PolarCode::initialize_frozen_bits() {
 }
 */
 std::vector<uint8_t> PolarCode::sys_encode(std::vector<uint8_t> info_bits) {
-    // æœ¬è´¨å°±æ˜¯ä¿¡æ¯ä¹˜äº†GAA^-1,ä½†æ˜¯æœ‰nlognçš„æ–¹æ³•,å°±æ˜¯ä¸¤æ­¥ç¼–ç 
-    // éœ€è¦æ³¨æ„çš„æ˜¯ï¼ŒAæ‰€é€‰æ‹©çš„æ•°é‡ä¸ºeffective_info_length
-    // è¿™é‡Œä½¿ç”¨ä¸¤æ­¥ç¼–ç ï¼Œæ— æ³•ä½¿ç”¨çš„è¯ï¼Œcheck_inverseä¼šæŠ¥é”™
-    // ç¬¬ä¸€æ­¥ç¼–ç 
+    // ±¾ÖÊ¾ÍÊÇĞÅÏ¢³ËÁËGAA^-1,µ«ÊÇÓĞnlognµÄ·½·¨,¾ÍÊÇÁ½²½±àÂë
+    // ĞèÒª×¢ÒâµÄÊÇ£¬AËùÑ¡ÔñµÄÊıÁ¿Îªeffective_info_length
+    // ÕâÀïÊ¹ÓÃÁ½²½±àÂë£¬ÎŞ·¨Ê¹ÓÃµÄ»°£¬check_inverse»á±¨´í
+    // µÚÒ»²½±àÂë
     uint32_t  effective_info_length = _info_length + _crc_size;
     auto info = this->encode(info_bits);
-    // éä¿¡æ¯ä½å¡«å†æ¬¡å¡«0
+    // ·ÇĞÅÏ¢Î»ÌîÔÙ´ÎÌî0
     for (uint32_t i = effective_info_length; i < _block_length; ++i) {
         info.at(_channel_order_descending.at((i))) = 0;
     }
-    // ç›´æ¥è¿‡æåŒ–ï¼Œä¸éœ€è¦å¡«äº†
+    // Ö±½Ó¹ı¼«»¯£¬²»ĞèÒªÌîÁË
     for (uint8_t iteration = 0; iteration < _n; ++iteration) {
         uint32_t  group_size = (uint32_t)(1 << iteration);
         for (uint32_t j = 0; j < group_size; j += 1) {
@@ -425,13 +425,13 @@ std::vector<uint8_t> PolarCode::decode_scl() {
 
     for (uint32_t phi = 0; phi < _block_length; ++phi) {
 
-        // è®¡ç®—LLR
+        // ¼ÆËãLLR
         if (_llr_based_computation)
             recursivelyCalcLLR(_n, phi);
         else
             recursivelyCalcP(_n, phi);
 
-        // è¯‘ç +å¤åˆ¶è·¯å¾„
+        // ÒëÂë+¸´ÖÆÂ·¾¶
         if (_frozen_bits.at(phi) == 1)
             continuePaths_FrozenBit(phi);
         else
@@ -445,17 +445,17 @@ std::vector<uint8_t> PolarCode::decode_scl() {
 
     uint32_t l = findMostProbablePath((bool)_crc_size);
 
-    // ç å­—
+    // Âë×Ö
     uint8_t* c_0 = _arrayPointer_Info.at(l);
 
-    // æå–ä¿¡æ¯
+    // ÌáÈ¡ĞÅÏ¢
     std::vector<uint8_t> deocded_info_bits(_info_length);
     for (uint32_t beta = 0; beta < _info_length; ++beta) {
         deocded_info_bits.at(beta) = c_0[_channel_order_ascending.at(_block_length - _info_length + beta)];
     }
 
     if (!_memory) {
-        // é‡Šæ”¾å†…å­˜ï¼Œå¯ä¿®æ­£ä¸ºå†…å­˜æ± é¿å…é‡Šæ”¾
+        // ÊÍ·ÅÄÚ´æ£¬¿ÉĞŞÕıÎªÄÚ´æ³Ø±ÜÃâÊÍ·Å
         for (uint32_t s = 0; s < _list_size; ++s) {
             delete[] _arrayPointer_Info.at(s);
             for (uint32_t lambda = 0; lambda < _n + 1; ++lambda) {
@@ -484,7 +484,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
 
     for (uint32_t cnt = 0; cnt < _nodes_type.size(); cnt++) {
-        // å¿«é€ŸèŠ‚ç‚¹çš„æ„ä¹‰åœ¨äºï¼Œå¯¹ä¸‹ç»™å‡ºç­”æ¡ˆï¼Œå¯¹ä¸Šç»™å‡ºç å­—
+        // ¿ìËÙ½ÚµãµÄÒâÒåÔÚÓÚ£¬¶ÔÏÂ¸ø³ö´ğ°¸£¬¶ÔÉÏ¸ø³öÂë×Ö
         if (_nodes_type[cnt].type == NodeType::R0) {
             int begin = _nodes_type[cnt].begin;
             int end = _nodes_type[cnt].end;
@@ -560,7 +560,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                             pos[l] = beta;
                         }
                     }
-                   
+
                     if (c_lambda[pos[l] + left_right * group_size] == 0) {
                         probForks.at(2 * l + 1) += exp(-minns[l]);
                         probForks.at(2 * l + 1) -= exp(minns[l]);
@@ -586,13 +586,13 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
             for (uint32_t l = 0; l < 2 * _list_size; ++l)
                 contForks.at(l) = 0;
 
-            // ä»å¤§åˆ°å°æ’åº
+            // ´Ó´óµ½Ğ¡ÅÅĞò
             std::sort(probabilities.begin(), probabilities.end(), std::greater<double>());
 
             double threshold = probabilities.at((unsigned long)(rho - 1));
             uint32_t num_paths_continued = 0;
 
-            // é€‰æ‹©å­˜æ´»çš„è·¯å¾„
+            // Ñ¡Ôñ´æ»îµÄÂ·¾¶
             for (uint32_t l = 0; l < 2 * _list_size; ++l) {
 
                 if (probForks.at(l) > threshold) {
@@ -607,7 +607,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             }
 
-            // å°æ¦‚ç‡äº‹ä»¶ï¼šå­˜åœ¨åº¦é‡å€¼ç›¸ç­‰çš„æƒ…å†µã€‚æç«¯----æ‰€æœ‰åº¦é‡å€¼éƒ½ä¸€æ ·ï¼Œæ­¤æ—¶æ‰¾ä¸åˆ°å¤§äºé—¨é™çš„è·¯å¾„ï¼Œåˆ™ç­‰äºé—¨é™çš„è·¯å¾„ä¹ŸåŠ å…¥ã€‚
+            // Ğ¡¸ÅÂÊÊÂ¼ş£º´æÔÚ¶ÈÁ¿ÖµÏàµÈµÄÇé¿ö¡£¼«¶Ë----ËùÓĞ¶ÈÁ¿Öµ¶¼Ò»Ñù£¬´ËÊ±ÕÒ²»µ½´óÓÚÃÅÏŞµÄÂ·¾¶£¬ÔòµÈÓÚÃÅÏŞµÄÂ·¾¶Ò²¼ÓÈë¡£
             if (num_paths_continued < rho) {
 
                 for (uint32_t l = 0; l < 2 * _list_size; ++l) {
@@ -631,7 +631,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 if (_activePath.at(l) == 0)
                     continue;
 
-                // éœ€è¦èˆå¼ƒçš„è·¯å¾„
+                // ĞèÒªÉáÆúµÄÂ·¾¶
                 if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
                     killPath(l);
 
@@ -647,15 +647,15 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
                 if (contForks.at(2 * l) == 1 && contForks.at(2 * l + 1) == 1) {
 
-                    // è·¯å¾„lä¸ºåˆ¤ä¸º0çš„è·¯å¾„
+                    // Â·¾¶lÎªÅĞÎª0µÄÂ·¾¶
                     c_lambda[pos[l] + left_right * group_size] = 0;
 
-                    // å¤åˆ¶è·¯å¾„låˆ°l_p
+                    // ¸´ÖÆÂ·¾¶lµ½l_p
                     uint32_t l_p = clonePath(l);
                     uint8_t* c_lambda = getArrayPointer_C(layer, l_p);
                     c_lambda[pos[l] + left_right * group_size] = 1;
 
-                    // lè·¯å¾„å¤åˆ¶åˆ°l_p
+                    // lÂ·¾¶¸´ÖÆµ½l_p
                     std::copy(_arrayPointer_Info.at(l), _arrayPointer_Info.at(l) + begin, _arrayPointer_Info.at(l_p));
 
                     _pathMetric_LLR.at(l) = -probForks.at(2 * l);
@@ -664,7 +664,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 }
                 else {
 
-                    // è¯‘ä¸º0çš„è·¯å¾„å­˜æ´»
+                    // ÒëÎª0µÄÂ·¾¶´æ»î
                     if (contForks.at(2 * l) == 1) {
 
                         c_lambda[pos[l] + left_right * group_size] = 0;
@@ -672,7 +672,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                         _pathMetric_LLR.at(l) = -probForks.at(2 * l);
 
                     }
-                    // è¯‘ä¸º1çš„è·¯å¾„å­˜æ´»
+                    // ÒëÎª1µÄÂ·¾¶´æ»î
                     else {
 
                         c_lambda[pos[l] + left_right * group_size] = 1;
@@ -688,20 +688,20 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             for (uint32_t l = 0; l < _list_size; ++l) {
 
-                // å¦‚æœè·¯å¾„æ¿€æ´»
+                // Èç¹ûÂ·¾¶¼¤»î
                 if (_activePath.at(l) == 0)
                     continue;
                 uint8_t* c_lambda = getArrayPointer_C(layer, l);
                 uint8_t* c_0 = _arrayPointer_Info.at(l);
 
                 for (size_t beta = 0; beta < group_size; beta++) {
-                    // ç”¨äºåç»­ç¡¬åˆ¤æ–­ï¼Œc_0*G*G=c_0,æ­¤æ—¶c_0æ˜¯c_0*G
+                    // ÓÃÓÚºóĞøÓ²ÅĞ¶Ï£¬c_0*G*G=c_0,´ËÊ±c_0ÊÇc_0*G
                     c_0[begin + beta] = c_lambda[beta + left_right * group_size];
                 }
 
 
                 //_thread_pool.enqueue([c_0, sub_code_layer_num, sub_code_length, begin] {
-                //    // ç å­—ç¡¬åˆ¤æˆç»“æœï¼Œæ—¢å†ä¹˜ä¸€ä¸ªGçŸ©é˜µ
+                //    // Âë×ÖÓ²ÅĞ³É½á¹û£¬¼ÈÔÙ³ËÒ»¸öG¾ØÕó
                 //    for (uint8_t iteration = 0; iteration < sub_code_layer_num; ++iteration) {
                 //        uint32_t  group_size = (uint32_t)(1 << iteration);
                 //        for (uint32_t j = 0; j < group_size; j += 1) {
@@ -753,16 +753,16 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 }
                 else {
 
-                    // è·å–ç»“æœçš„ä¼¼ç„¶å€¼
+                    // »ñÈ¡½á¹ûµÄËÆÈ»Öµ
                     double* llr_p = getArrayPointer_LLR(layer, l);
                     uint8_t* c_lambda = getArrayPointer_C(layer, l);
 
-                    // é¦–å…ˆæ˜¯ä¸ªé‡å¤ç 
+                    // Ê×ÏÈÊÇ¸öÖØ¸´Âë
                     double sum = 0;
                     for (size_t beta = 0; beta < group_size; beta++) {
                         sum += llr_p[beta];
                     }
-                    // è®¡ç®—PM
+                    // ¼ÆËãPM
                     probForks.at(2 * l) = -_pathMetric_LLR.at(l);
                     probForks.at(2 * l + 1) = -_pathMetric_LLR.at(l);
                     for (size_t beta = 0; beta < group_size; beta++) {
@@ -787,13 +787,13 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
             for (uint32_t l = 0; l < 2 * _list_size; ++l)
                 contForks.at(l) = 0;
 
-            // ä»å¤§åˆ°å°æ’åº
+            // ´Ó´óµ½Ğ¡ÅÅĞò
             std::sort(probabilities.begin(), probabilities.end(), std::greater<double>());
 
             double threshold = probabilities.at((unsigned long)(rho - 1));
             uint32_t num_paths_continued = 0;
 
-            // é€‰æ‹©å­˜æ´»çš„è·¯å¾„
+            // Ñ¡Ôñ´æ»îµÄÂ·¾¶
             for (uint32_t l = 0; l < 2 * _list_size; ++l) {
 
                 if (probForks.at(l) > threshold) {
@@ -808,7 +808,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             }
 
-            // å°æ¦‚ç‡äº‹ä»¶ï¼šå­˜åœ¨åº¦é‡å€¼ç›¸ç­‰çš„æƒ…å†µã€‚æç«¯----æ‰€æœ‰åº¦é‡å€¼éƒ½ä¸€æ ·ï¼Œæ­¤æ—¶æ‰¾ä¸åˆ°å¤§äºé—¨é™çš„è·¯å¾„ï¼Œåˆ™ç­‰äºé—¨é™çš„è·¯å¾„ä¹ŸåŠ å…¥ã€‚
+            // Ğ¡¸ÅÂÊÊÂ¼ş£º´æÔÚ¶ÈÁ¿ÖµÏàµÈµÄÇé¿ö¡£¼«¶Ë----ËùÓĞ¶ÈÁ¿Öµ¶¼Ò»Ñù£¬´ËÊ±ÕÒ²»µ½´óÓÚÃÅÏŞµÄÂ·¾¶£¬ÔòµÈÓÚÃÅÏŞµÄÂ·¾¶Ò²¼ÓÈë¡£
             if (num_paths_continued < rho) {
 
                 for (uint32_t l = 0; l < 2 * _list_size; ++l) {
@@ -832,7 +832,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 if (_activePath.at(l) == 0)
                     continue;
 
-                // éœ€è¦èˆå¼ƒçš„è·¯å¾„
+                // ĞèÒªÉáÆúµÄÂ·¾¶
                 if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
                     killPath(l);
 
@@ -841,17 +841,17 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             for (unsigned l = 0; l < _list_size; ++l) {
 
-                // æ²¡é€‰ä¸Š
+                // Ã»Ñ¡ÉÏ
                 if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
                     continue;
 
                 uint8_t* c_lambda = getArrayPointer_C(layer, l);
                 uint8_t tmp = c_lambda[0 + left_right * group_size];
 
-                // éƒ½å­˜æ´»äº†
+                // ¶¼´æ»îÁË
                 if (contForks.at(2 * l) == 1 && contForks.at(2 * l + 1) == 1) {
 
-                    // å¤åˆ¶è·¯å¾„låˆ°l_p
+                    // ¸´ÖÆÂ·¾¶lµ½l_p
                     uint32_t l_p = clonePath(l);
                     uint8_t* c_lambda = getArrayPointer_C(layer, l_p);
 
@@ -859,7 +859,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                         c_lambda[beta + left_right * group_size] = 1 - tmp;
                     }
 
-                    // lè·¯å¾„å¤åˆ¶åˆ°l_p
+                    // lÂ·¾¶¸´ÖÆµ½l_p
                     std::copy(_arrayPointer_Info.at(l), _arrayPointer_Info.at(l) + begin, _arrayPointer_Info.at(l_p));
 
                     _pathMetric_LLR.at(l) = -probForks.at(2 * l);
@@ -868,13 +868,13 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 }
                 else {
 
-                    // è¯‘ä¸º0çš„è·¯å¾„å­˜æ´»
+                    // ÒëÎª0µÄÂ·¾¶´æ»î
                     if (contForks.at(2 * l) == 1) {
 
                         _pathMetric_LLR.at(l) = -probForks.at(2 * l);
 
                     }
-                    // è¯‘ä¸º1çš„è·¯å¾„å­˜æ´»
+                    // ÒëÎª1µÄÂ·¾¶´æ»î
                     else {
 
                         for (size_t beta = 0; beta < group_size; beta++) {
@@ -891,7 +891,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             for (uint32_t l = 0; l < _list_size; ++l) {
 
-                // å¦‚æœè·¯å¾„æ¿€æ´»
+                // Èç¹ûÂ·¾¶¼¤»î
                 if (_activePath.at(l) == 0)
                     continue;
                 uint8_t* c_lambda = getArrayPointer_C(layer, l);
@@ -938,11 +938,11 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 }
                 else {
 
-                    // è·å–ç»“æœçš„ä¼¼ç„¶å€¼
+                    // »ñÈ¡½á¹ûµÄËÆÈ»Öµ
                     double* llr_p = getArrayPointer_LLR(layer, l);
                     uint8_t* c_lambda = getArrayPointer_C(layer, l);
 
-                    // é¦–å…ˆæ˜¯ä¸ªå¥‡å¶æ ¡éªŒç 
+                    // Ê×ÏÈÊÇ¸öÆæÅ¼Ğ£ÑéÂë
                     std::priority_queue<std::pair<double, size_t>, std::vector<std::pair<double, size_t>>, Cmp> minn;
                     for (size_t beta = 0; beta < group_size; beta++) {
                         check[l] *= llr_p[beta];
@@ -953,17 +953,17 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                     pos_min2[l] = minn.top().second; minn.pop();
                     pos_min1[l] = minn.top().second; minn.pop();
 
-                    // è®¡ç®—PM
+                    // ¼ÆËãPM
                     probForks.at(2 * l) = -_pathMetric_LLR.at(l);
                     probForks.at(2 * l + 1) = -_pathMetric_LLR.at(l);
 
                     if (check[l] > 0) {
-                        // è¿‡äº†å¥‡å¶æ ¡éªŒ
+                        // ¹ıÁËÆæÅ¼Ğ£Ñé
                         for (size_t beta = 0; beta < group_size; beta++) {
                             c_lambda[beta + left_right * group_size] = (uint8_t)(llr_p[beta] < 0);
                             probForks.at(2 * l) -= log(1 + exp(-(1 - 2 * c_lambda[beta + left_right * group_size]) * llr_p[beta]));
                         }
-                        // ä¿®æ”¹ä¸¤ä¸ª
+                        // ĞŞ¸ÄÁ½¸ö
                         probForks.at(2 * l + 1) = probForks.at(2 * l);
                         probForks.at(2 * l + 1) += log(1 + exp(-(1 - 2 * c_lambda[pos_min1[l] + left_right * group_size]) * llr_p[pos_min1[l]]));
                         probForks.at(2 * l + 1) += log(1 + exp(-(1 - 2 * c_lambda[pos_min2[l] + left_right * group_size]) * llr_p[pos_min2[l]]));
@@ -982,7 +982,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                                 probForks.at(2 * l) -= log(1 + exp(-(1 - 2 * c_lambda[beta + left_right * group_size]) * llr_p[beta]));
                             }
                         }
-                        // ä¿®æ”¹ä¸¤ä¸ª
+                        // ĞŞ¸ÄÁ½¸ö
                         probForks.at(2 * l + 1) = probForks.at(2 * l);
                         probForks.at(2 * l + 1) += log(1 + exp(-(1 - 2 * c_lambda[pos_min3[l] + left_right * group_size]) * llr_p[pos_min3[l]]));
                         probForks.at(2 * l + 1) += log(1 + exp(-(1 - 2 * c_lambda[pos_min2[l] + left_right * group_size]) * llr_p[pos_min2[l]]));
@@ -1010,13 +1010,13 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
             for (uint32_t l = 0; l < 2 * _list_size; ++l)
                 contForks.at(l) = 0;
 
-            // ä»å¤§åˆ°å°æ’åº
+            // ´Ó´óµ½Ğ¡ÅÅĞò
             std::sort(probabilities.begin(), probabilities.end(), std::greater<double>());
 
             double threshold = probabilities.at((unsigned long)(rho - 1));
             uint32_t num_paths_continued = 0;
 
-            // é€‰æ‹©å­˜æ´»çš„è·¯å¾„
+            // Ñ¡Ôñ´æ»îµÄÂ·¾¶
             for (uint32_t l = 0; l < 2 * _list_size; ++l) {
 
                 if (probForks.at(l) > threshold) {
@@ -1031,7 +1031,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             }
 
-            // å°æ¦‚ç‡äº‹ä»¶ï¼šå­˜åœ¨åº¦é‡å€¼ç›¸ç­‰çš„æƒ…å†µã€‚æç«¯----æ‰€æœ‰åº¦é‡å€¼éƒ½ä¸€æ ·ï¼Œæ­¤æ—¶æ‰¾ä¸åˆ°å¤§äºé—¨é™çš„è·¯å¾„ï¼Œåˆ™ç­‰äºé—¨é™çš„è·¯å¾„ä¹ŸåŠ å…¥ã€‚
+            // Ğ¡¸ÅÂÊÊÂ¼ş£º´æÔÚ¶ÈÁ¿ÖµÏàµÈµÄÇé¿ö¡£¼«¶Ë----ËùÓĞ¶ÈÁ¿Öµ¶¼Ò»Ñù£¬´ËÊ±ÕÒ²»µ½´óÓÚÃÅÏŞµÄÂ·¾¶£¬ÔòµÈÓÚÃÅÏŞµÄÂ·¾¶Ò²¼ÓÈë¡£
             if (num_paths_continued < rho) {
 
                 for (uint32_t l = 0; l < 2 * _list_size; ++l) {
@@ -1055,7 +1055,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 if (_activePath.at(l) == 0)
                     continue;
 
-                // éœ€è¦èˆå¼ƒçš„è·¯å¾„
+                // ĞèÒªÉáÆúµÄÂ·¾¶
                 if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
                     killPath(l);
 
@@ -1064,16 +1064,16 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             for (unsigned l = 0; l < _list_size; ++l) {
 
-                // æ²¡é€‰ä¸Š
+                // Ã»Ñ¡ÉÏ
                 if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
                     continue;
 
                 uint8_t* c_lambda = getArrayPointer_C(layer, l);
 
-                // éƒ½å­˜æ´»äº†
+                // ¶¼´æ»îÁË
                 if (contForks.at(2 * l) == 1 && contForks.at(2 * l + 1) == 1) {
 
-                    // å¤åˆ¶è·¯å¾„låˆ°l_p
+                    // ¸´ÖÆÂ·¾¶lµ½l_p
                     uint32_t l_p = clonePath(l);
                     uint8_t* c_lambda1 = getArrayPointer_C(layer, l_p);
 
@@ -1093,7 +1093,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                         c_lambda1[pos_min3[l] + left_right * group_size] = 1 - c_lambda[pos_min3[l] + left_right * group_size];
                     }
 
-                    // lè·¯å¾„å¤åˆ¶åˆ°l_p
+                    // lÂ·¾¶¸´ÖÆµ½l_p
                     std::copy(_arrayPointer_Info.at(l), _arrayPointer_Info.at(l) + begin, _arrayPointer_Info.at(l_p));
 
                     _pathMetric_LLR.at(l) = -probForks.at(2 * l);
@@ -1102,13 +1102,13 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 }
                 else {
 
-                    // è¯‘ä¸º0çš„è·¯å¾„å­˜æ´»
+                    // ÒëÎª0µÄÂ·¾¶´æ»î
                     if (contForks.at(2 * l) == 1) {
 
                         _pathMetric_LLR.at(l) = -probForks.at(2 * l);
 
                     }
-                    // è¯‘ä¸º1çš„è·¯å¾„å­˜æ´»
+                    // ÒëÎª1µÄÂ·¾¶´æ»î
                     else {
 
                         if (check[l] > 0) {
@@ -1131,7 +1131,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
 
             for (uint32_t l = 0; l < _list_size; ++l) {
-                // å¦‚æœè·¯å¾„æ¿€æ´»
+                // Èç¹ûÂ·¾¶¼¤»î
                 if (_activePath.at(l) == 0)
                     continue;
                 uint8_t* c_lambda = getArrayPointer_C(layer, l);
@@ -1140,9 +1140,9 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 for (size_t beta = 0; beta < group_size; beta++) {
                     c_0[begin + beta] = c_lambda[beta + left_right * group_size];
                 }
-                /*æ‹¿ä¸ªçº¿ç¨‹ç¡¬åˆ¤ï¼Œè®¡ç®—(c_0*G)*G*/
+                /*ÄÃ¸öÏß³ÌÓ²ÅĞ£¬¼ÆËã(c_0*G)*G*/
                 _thread_pool.enqueue([c_0, sub_code_layer_num, sub_code_length, begin] {
-                    // ç å­—ç¡¬åˆ¤æˆç»“æœï¼Œæ—¢å†ä¹˜ä¸€ä¸ªGçŸ©é˜µ
+                    // Âë×ÖÓ²ÅĞ³É½á¹û£¬¼ÈÔÙ³ËÒ»¸öG¾ØÕó
                     for (uint8_t iteration = 0; iteration < sub_code_layer_num; ++iteration) {
                         uint32_t  group_size = (uint32_t)(1 << iteration);
                         for (uint32_t j = 0; j < group_size; j += 1) {
@@ -1254,7 +1254,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                         probForks.at(2 * l + 1) -= log(1 + exp(-(1 - 2 * c_lambda[beta + left_right * group_size + 3]) * llr_p[beta + 3]));
 
 
-                        // åè½¬ä¸¤ä¸ªä¿æŒcheck
+                        // ·´×ªÁ½¸ö±£³Öcheck
                         probForks.at(2 * l + 1) += log(1 + exp(-(1 - 2 * c_lambda[beta + left_right * group_size + pos_min2[l]]) * llr_p[beta + pos_min2[l]]));
                         probForks.at(2 * l + 1) -= log(1 + exp((1 - 2 * c_lambda[beta + left_right * group_size + pos_min2[l]]) * llr_p[beta + pos_min2[l]]));
 
@@ -1279,12 +1279,12 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
             for (uint32_t l = 0; l < 2 * _list_size; ++l)
                 contForks.at(l) = 0;
 
-            // ä»å¤§åˆ°å°æ’åº
+            // ´Ó´óµ½Ğ¡ÅÅĞò
             std::sort(probabilities.begin(), probabilities.end(), std::greater<double>());
             double threshold = probabilities.at((unsigned long)(rho - 1));
             uint32_t num_paths_continued = 0;
 
-            // é€‰æ‹©å­˜æ´»çš„è·¯å¾„
+            // Ñ¡Ôñ´æ»îµÄÂ·¾¶
             for (uint32_t l = 0; l < 2 * _list_size; ++l) {
 
                 if (probForks.at(l) > threshold) {
@@ -1299,7 +1299,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             }
 
-            // å°æ¦‚ç‡äº‹ä»¶ï¼šå­˜åœ¨åº¦é‡å€¼ç›¸ç­‰çš„æƒ…å†µã€‚æç«¯----æ‰€æœ‰åº¦é‡å€¼éƒ½ä¸€æ ·ï¼Œæ­¤æ—¶æ‰¾ä¸åˆ°å¤§äºé—¨é™çš„è·¯å¾„ï¼Œåˆ™ç­‰äºé—¨é™çš„è·¯å¾„ä¹ŸåŠ å…¥ã€‚
+            // Ğ¡¸ÅÂÊÊÂ¼ş£º´æÔÚ¶ÈÁ¿ÖµÏàµÈµÄÇé¿ö¡£¼«¶Ë----ËùÓĞ¶ÈÁ¿Öµ¶¼Ò»Ñù£¬´ËÊ±ÕÒ²»µ½´óÓÚÃÅÏŞµÄÂ·¾¶£¬ÔòµÈÓÚÃÅÏŞµÄÂ·¾¶Ò²¼ÓÈë¡£
             if (num_paths_continued < rho) {
 
                 for (uint32_t l = 0; l < 2 * _list_size; ++l) {
@@ -1323,7 +1323,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 if (_activePath.at(l) == 0)
                     continue;
 
-                // éœ€è¦èˆå¼ƒçš„è·¯å¾„
+                // ĞèÒªÉáÆúµÄÂ·¾¶
                 if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
                     killPath(l);
 
@@ -1332,7 +1332,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             for (unsigned l = 0; l < _list_size; ++l) {
 
-                // æ²¡é€‰ä¸Š
+                // Ã»Ñ¡ÉÏ
                 if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
                     continue;
 
@@ -1340,10 +1340,10 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 uint8_t tmp1 = c_lambda[0 + left_right * group_size + pos_min2[l]];
                 uint8_t tmp2 = c_lambda[0 + left_right * group_size + pos_min3[l]];
 
-                // éƒ½å­˜æ´»äº†
+                // ¶¼´æ»îÁË
                 if (contForks.at(2 * l) == 1 && contForks.at(2 * l + 1) == 1) {
 
-                    // å¤åˆ¶è·¯å¾„låˆ°l_p
+                    // ¸´ÖÆÂ·¾¶lµ½l_p
                     uint32_t l_p = clonePath(l);
                     uint8_t* c_lambda = getArrayPointer_C(layer, l_p);
 
@@ -1352,7 +1352,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                         c_lambda[beta + left_right * group_size + pos_min3[l]] = 1 - tmp2;
                     }
 
-                    // lè·¯å¾„å¤åˆ¶åˆ°l_p
+                    // lÂ·¾¶¸´ÖÆµ½l_p
                     std::copy(_arrayPointer_Info.at(l), _arrayPointer_Info.at(l) + begin, _arrayPointer_Info.at(l_p));
 
                     _pathMetric_LLR.at(l) = -probForks.at(2 * l);
@@ -1361,13 +1361,13 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 }
                 else {
 
-                    // è¯‘ä¸º0çš„è·¯å¾„å­˜æ´»
+                    // ÒëÎª0µÄÂ·¾¶´æ»î
                     if (contForks.at(2 * l) == 1) {
 
                         _pathMetric_LLR.at(l) = -probForks.at(2 * l);
 
                     }
-                    // è¯‘ä¸º1çš„è·¯å¾„å­˜æ´»
+                    // ÒëÎª1µÄÂ·¾¶´æ»î
                     else {
 
                         for (size_t beta = 0; beta < group_size; beta += 4) {
@@ -1385,7 +1385,7 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             for (uint32_t l = 0; l < _list_size; ++l) {
 
-                // å¦‚æœè·¯å¾„æ¿€æ´»
+                // Èç¹ûÂ·¾¶¼¤»î
                 if (_activePath.at(l) == 0)
                     continue;
                 uint8_t* c_lambda = getArrayPointer_C(layer, l);
@@ -1417,13 +1417,13 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
         }
         else if (_nodes_type[cnt].type == NodeType::NONE) {
             for (uint32_t phi = _nodes_type[cnt].begin; phi <= _nodes_type[cnt].end; phi++) {
-                // è®¡ç®—LLR
+                // ¼ÆËãLLR
                 if (_llr_based_computation)
                     recursivelyCalcLLR(_n, phi);
                 else
                     recursivelyCalcP(_n, phi);
 
-                // è¯‘ç +å¤åˆ¶è·¯å¾„
+                // ÒëÂë+¸´ÖÆÂ·¾¶
                 if (_frozen_bits.at(phi) == 1)
                     continuePaths_FrozenBit(phi);
                 else
@@ -1622,8 +1622,8 @@ uint32_t PolarCode::clonePath(uint32_t l) {
 
 void PolarCode::killPath(uint32_t l) {
 
-    /// è¯´æ˜ï¼š
-    /// åˆ é™¤è·¯å¾„éœ€è¦ï¼š1.è¡¨æ˜è¿™æ¡è·¯å¾„è¢«killï¼›2.åº¦é‡å€¼PMç½®0ï¼›3.è·¯å¾„æ˜ å°„çš„å†…å­˜è¢«æ˜ å°„çš„æ•°é‡å‡1ï¼›4.å¦‚æœå†…å­˜è¢«æ˜ å°„çš„æ•°é‡å‡åˆ°0ï¼Œåˆ™åŠ å…¥åˆ°æœªä½¿ç”¨ç¼–å·ä¸­å»
+    /// ËµÃ÷£º
+    /// É¾³ıÂ·¾¶ĞèÒª£º1.±íÃ÷ÕâÌõÂ·¾¶±»kill£»2.¶ÈÁ¿ÖµPMÖÃ0£»3.Â·¾¶Ó³ÉäµÄÄÚ´æ±»Ó³ÉäµÄÊıÁ¿¼õ1£»4.Èç¹ûÄÚ´æ±»Ó³ÉäµÄÊıÁ¿¼õµ½0£¬Ôò¼ÓÈëµ½Î´Ê¹ÓÃ±àºÅÖĞÈ¥
 
     // 1.
     _activePath.at(l) = 0;
@@ -1668,49 +1668,49 @@ double* PolarCode::getArrayPointer_P(uint32_t lambda, uint32_t  l) {
     return _arrayPointer_P.at(lambda).at(s_p);
 }
 
-/// æ³¨æ„ï¼šåªè®°å½•è‡ªå·±èŠ‚ç‚¹çš„LLR,åŒå±‚ä¹‹å‰çš„èŠ‚ç‚¹çš„æ•°æ®å·²ç»ä¸éœ€è¦äº†
+/// ×¢Òâ£ºÖ»¼ÇÂ¼×Ô¼º½ÚµãµÄLLR,Í¬²ãÖ®Ç°µÄ½ÚµãµÄÊı¾İÒÑ¾­²»ĞèÒªÁË
 double* PolarCode::getArrayPointer_LLR(uint32_t lambda, uint32_t  l) {
 
-    /// è¯´æ˜ï¼š
-    /// è·å–ç¬¬læ¡è·¯å¾„åœ¨lambdaå±‚æ‰€å¯¹åº”çš„åœ°å€å¯¹åº”çš„ç¼–å·s
-    /// ç¬¬læ¡è·¯å¾„çš„ç¬¬lambdaå±‚å¯èƒ½æ˜¯å’Œå…¶å®ƒè·¯å¾„çš„lambdaå±‚å…¬ç”¨ä¸€ä¸ªå†…å­˜çš„(å¤åˆ¶è·¯å¾„æ—¶ï¼Œå¾ˆå¤šæ•°æ®æ˜¯ä¸€æ ·çš„)
-    /// æ‰€ä»¥ä½¿ç”¨ä¸€ä¸ªç¼–å·sä»£æ›¿é‚£å—å†…å­˜
+    /// ËµÃ÷£º
+    /// »ñÈ¡µÚlÌõÂ·¾¶ÔÚlambda²ãËù¶ÔÓ¦µÄµØÖ·¶ÔÓ¦µÄ±àºÅs
+    /// µÚlÌõÂ·¾¶µÄµÚlambda²ã¿ÉÄÜÊÇºÍÆäËüÂ·¾¶µÄlambda²ã¹«ÓÃÒ»¸öÄÚ´æµÄ(¸´ÖÆÂ·¾¶Ê±£¬ºÜ¶àÊı¾İÊÇÒ»ÑùµÄ)
+    /// ËùÒÔÊ¹ÓÃÒ»¸ö±àºÅs´úÌæÄÇ¿éÄÚ´æ
     uint32_t  s = _pathIndexToArrayIndex.at(lambda).at(l);
 
-    // spä»£æ›¿æ–°çš„å†…å­˜ç¼–å·
+    // sp´úÌæĞÂµÄÄÚ´æ±àºÅ
     uint32_t s_p;
 
-    /// è¯´æ˜ï¼š
-    /// _arrayReferenceCountç”¨äºè¯´æ˜ï¼Œæœ‰å¤šå°‘è·¯å¾„å…±åŒä½¿ç”¨äº†ï¼Œå­˜æ”¾ç¬¬lambdaå±‚LLRå€¼/ç å­—å­˜æ”¾çš„åœ°å€
-    /// å¦‚æœåªæœ‰ä¸€æ¡è·¯å¾„ä½¿ç”¨è¿™å—å†…å­˜ï¼Œåˆ™ç›´æ¥è¿”å›
+    /// ËµÃ÷£º
+    /// _arrayReferenceCountÓÃÓÚËµÃ÷£¬ÓĞ¶àÉÙÂ·¾¶¹²Í¬Ê¹ÓÃÁË£¬´æ·ÅµÚlambda²ãLLRÖµ/Âë×Ö´æ·ÅµÄµØÖ·
+    /// Èç¹ûÖ»ÓĞÒ»ÌõÂ·¾¶Ê¹ÓÃÕâ¿éÄÚ´æ£¬ÔòÖ±½Ó·µ»Ø
     if (_arrayReferenceCount.at(lambda).at(s) == 1) {
 
         s_p = s;
 
     }
-    // å¦‚æœæœ‰å¤šæ¡è·¯å¾„
+    // Èç¹ûÓĞ¶àÌõÂ·¾¶
     else {
 
-        // ä»_inactiveArrayIndicesä¸­æ¿€æ´»ä¸€ä¸ªæ–°çš„åœ°å€ç¼–å·
+        // ´Ó_inactiveArrayIndicesÖĞ¼¤»îÒ»¸öĞÂµÄµØÖ·±àºÅ
         s_p = _inactiveArrayIndices.at(lambda).top();
         _inactiveArrayIndices.at(lambda).pop();
 
-        // å°†LLRå€¼/ç å­—å¤åˆ¶å…¥æ–°çš„å†…å­˜
+        // ½«LLRÖµ/Âë×Ö¸´ÖÆÈëĞÂµÄÄÚ´æ
         std::copy(_arrayPointer_C.at(lambda).at(s), _arrayPointer_C.at(lambda).at(s) + (1 << (_n - lambda + 1)),
             _arrayPointer_C.at(lambda).at(s_p));
 
-        /// è¯´æ˜ï¼š
-        /// å¦‚æœLLRæœ‰å†…å­˜ï¼Œå¯¹åº”çš„ç å­—ä¹Ÿéœ€è¦æ–°å†…å­˜
+        /// ËµÃ÷£º
+        /// Èç¹ûLLRÓĞÄÚ´æ£¬¶ÔÓ¦µÄÂë×ÖÒ²ĞèÒªĞÂÄÚ´æ
         std::copy(_arrayPointer_LLR.at(lambda).at(s), _arrayPointer_LLR.at(lambda).at(s) + (1 << (_n - lambda)),
             _arrayPointer_LLR.at(lambda).at(s_p));
 
-        // så—å†…å­˜å…¬ç”¨æ•°é‡å‡ä¸€
+        // s¿éÄÚ´æ¹«ÓÃÊıÁ¿¼õÒ»
         _arrayReferenceCount.at(lambda).at(s)--;
 
-        // spå—å†…å­˜å…¬ç”¨æ•°é‡ç½®ä¸€
+        // sp¿éÄÚ´æ¹«ÓÃÊıÁ¿ÖÃÒ»
         _arrayReferenceCount.at(lambda).at(s_p) = 1;
 
-        // æ˜ å°„
+        // Ó³Éä
         _pathIndexToArrayIndex.at(lambda).at(l) = s_p;
 
     }
@@ -1718,17 +1718,17 @@ double* PolarCode::getArrayPointer_LLR(uint32_t lambda, uint32_t  l) {
     return _arrayPointer_LLR.at(lambda).at(s_p);
 }
 
-/// æ³¨æ„ï¼šCä¸­å­˜å‚¨äº†ä¸¤ä¸ªèŠ‚ç‚¹çš„ç å­—ï¼Œåˆ†åˆ«æ˜¯ï¼ˆå…„å¼ŸèŠ‚ç‚¹ï¼Œè‡ªå·±ï¼‰æˆ–è€…ï¼ˆè‡ªå·±ï¼Œå…„å¼ŸèŠ‚ç‚¹ï¼‰ï¼Œåœ¨recursivelyUpdateCä¾¿äºå¾€ä¸Šè¿­ä»£
+/// ×¢Òâ£ºCÖĞ´æ´¢ÁËÁ½¸ö½ÚµãµÄÂë×Ö£¬·Ö±ğÊÇ£¨ĞÖµÜ½Úµã£¬×Ô¼º£©»òÕß£¨×Ô¼º£¬ĞÖµÜ½Úµã£©£¬ÔÚrecursivelyUpdateC±ãÓÚÍùÉÏµü´ú
 uint8_t* PolarCode::getArrayPointer_C(uint32_t lambda, uint32_t  l) {
 
-    // å˜é‡å«ä¹‰åŒgetArrayPointer_LLR
+    // ±äÁ¿º¬ÒåÍ¬getArrayPointer_LLR
     uint32_t  s = _pathIndexToArrayIndex.at(lambda).at(l);
     uint32_t s_p;
 
 
-    /// è¯´æ˜ï¼š
-    /// å¦‚æœå‰é¢æ‰§è¡Œè¿‡getArrayPointer_LLRï¼Œåˆ™æ­¤æ—¶è¿›å…¥==1çš„æƒ…å†µ
-    /// ä¸ä¼šé‡å¤æ‰§è¡Œcopyæ“ä½œ
+    /// ËµÃ÷£º
+    /// Èç¹ûÇ°ÃæÖ´ĞĞ¹ıgetArrayPointer_LLR£¬Ôò´ËÊ±½øÈë==1µÄÇé¿ö
+    /// ²»»áÖØ¸´Ö´ĞĞcopy²Ù×÷
     if (_arrayReferenceCount.at(lambda).at(s) == 1) {
 
         s_p = s;
@@ -1805,42 +1805,42 @@ void PolarCode::recursivelyCalcP(uint32_t lambda, uint32_t phi) {
 }
 
 void PolarCode::recursivelyCalcLLR(uint32_t lambda, uint32_t phi) {
-    // åˆ°è¾¾0å±‚ï¼Œè¿™ä¸€å±‚çš„LLRå°±æ˜¯æ¥æ”¶åˆ°çš„LLRï¼Œä¸éœ€è¦åšé¢å¤–è®¡ç®—
+    // µ½´ï0²ã£¬ÕâÒ»²ãµÄLLR¾ÍÊÇ½ÓÊÕµ½µÄLLR£¬²»ĞèÒª×ö¶îÍâ¼ÆËã
     if (lambda == 0)
         return;
 
-    // çˆ¶èŠ‚ç‚¹ç¼–å·
+    // ¸¸½Úµã±àºÅ
     uint32_t psi = phi >> 1;
 
-    /// è¯´æ˜ï¼š
-    /// å¦‚æœæ˜¯å³èŠ‚ç‚¹ï¼Œéœ€æ±‚çˆ¶èŠ‚ç‚¹è®¡ç®—LLRå€¼ï¼Œæ‰€ä»¥éœ€è¦çˆ¶èŠ‚ç‚¹è®¡ç®—å®Œæˆåï¼Œè·å–åˆ°æ‰€éœ€è¦çš„ä¼¼ç„¶å€¼ã€‚
-    /// æ˜¾ç„¶ç¬¬ä¸€æ¬¡è¿›å…¥lambdaï¼Œphiå‡½æ•°ä¸”ä¸ºå³èŠ‚ç‚¹æ—¶ï¼Œphi-1ï¼Œphiå¿…ç„¶æ˜¯ç¬¬ä¸€æ¬¡è¿›å…¥ï¼Œä¹Ÿæ˜¯å”¯ä¸€ä¸€æ¬¡è¿›å…¥
-    /// å¦‚æœæ˜¯å·¦èŠ‚ç‚¹ï¼Œåˆ™å³èŠ‚ç‚¹å·²ç»è®¡ç®—è¿‡äº†ï¼Œä¸éœ€è¦å†è®¡ç®—äº†
+    /// ËµÃ÷£º
+    /// Èç¹ûÊÇÓÒ½Úµã£¬ĞèÇó¸¸½Úµã¼ÆËãLLRÖµ£¬ËùÒÔĞèÒª¸¸½Úµã¼ÆËãÍê³Éºó£¬»ñÈ¡µ½ËùĞèÒªµÄËÆÈ»Öµ¡£
+    /// ÏÔÈ»µÚÒ»´Î½øÈëlambda£¬phiº¯ÊıÇÒÎªÓÒ½ÚµãÊ±£¬phi-1£¬phi±ØÈ»ÊÇµÚÒ»´Î½øÈë£¬Ò²ÊÇÎ¨Ò»Ò»´Î½øÈë
+    /// Èç¹ûÊÇ×ó½Úµã£¬ÔòÓÒ½ÚµãÒÑ¾­¼ÆËã¹ıÁË£¬²»ĞèÒªÔÙ¼ÆËãÁË
     if ((phi % 2) == 0)
         recursivelyCalcLLR(lambda - 1, psi);
 
 
-    // _list_sizeæ¡è·¯å¾„ä¾æ¬¡è®¡ç®—
+    // _list_sizeÌõÂ·¾¶ÒÀ´Î¼ÆËã
     for (uint32_t l = 0; l < _list_size; ++l) {
 
-        // å¦‚æœè·¯å¾„æ¿€æ´»
+        // Èç¹ûÂ·¾¶¼¤»î
         if (_activePath.at(l) == 0)
             continue;
 
-        // è·å–ç¬¬læ¡è·¯å¾„çš„ç¬¬lambdaå±‚çš„LLRæ•°ç»„çš„æŒ‡é’ˆ
+        // »ñÈ¡µÚlÌõÂ·¾¶µÄµÚlambda²ãµÄLLRÊı×éµÄÖ¸Õë
         double* llr_lambda = getArrayPointer_LLR(lambda, l);
 
-        // è·å–ç¬¬læ¡è·¯å¾„çš„ç¬¬lambda-1å±‚çš„LLRæ•°ç»„çš„æŒ‡é’ˆï¼Œå…¶åœ¨recursivelyCalcLLR(lambda - 1, psi)ä¸­å®Œæˆè®¡ç®—ï¼Œç”¨äºfå…¬å¼è®¡ç®—
+        // »ñÈ¡µÚlÌõÂ·¾¶µÄµÚlambda-1²ãµÄLLRÊı×éµÄÖ¸Õë£¬ÆäÔÚrecursivelyCalcLLR(lambda - 1, psi)ÖĞÍê³É¼ÆËã£¬ÓÃÓÚf¹«Ê½¼ÆËã
         double* llr_lambda_1 = getArrayPointer_LLR(lambda - 1, l);
 
-        // è·å–ç¬¬læ¡è·¯å¾„çš„ç¬¬lambdaå±‚çš„ç å­—æ•°ç»„çš„æŒ‡é’ˆï¼Œç”¨äºgå…¬å¼è®¡ç®—
+        // »ñÈ¡µÚlÌõÂ·¾¶µÄµÚlambda²ãµÄÂë×ÖÊı×éµÄÖ¸Õë£¬ÓÃÓÚg¹«Ê½¼ÆËã
         uint8_t* c_lambda = getArrayPointer_C(lambda, l);
 
         uint32_t group_size = (1 << (_n - lambda));
 
         for (uint32_t beta = 0; beta < group_size; ++beta) {
 
-            // å¦‚æœä¸ºå³èŠ‚ç‚¹
+            // Èç¹ûÎªÓÒ½Úµã
             if ((phi % 2) == 0) {
 
                 if (40 > std::max(std::abs(llr_lambda_1[beta]), std::abs(llr_lambda_1[beta + group_size]))) {
@@ -1850,7 +1850,7 @@ void PolarCode::recursivelyCalcLLR(uint32_t lambda, uint32_t phi) {
 
                 }
                 else {
-                    /// è¿‘ä¼¼å…¬å¼ï¼Œé˜²æ­¢æ•°æ®æº¢å‡º
+                    /// ½üËÆ¹«Ê½£¬·ÀÖ¹Êı¾İÒç³ö
                     llr_lambda[beta] = (double)(1 - 2 * (llr_lambda_1[beta] < 0)) *
                         (1 - 2 * (llr_lambda_1[beta + group_size] < 0)) *
                         std::min(std::abs(llr_lambda_1[beta]), std::abs(llr_lambda_1[beta + group_size]));
@@ -1858,7 +1858,7 @@ void PolarCode::recursivelyCalcLLR(uint32_t lambda, uint32_t phi) {
                 }
 
             }
-            // å¦åˆ™ä¸ºå·¦èŠ‚ç‚¹
+            // ·ñÔòÎª×ó½Úµã
             else {
 
                 uint8_t  u_p = c_lambda[beta];
@@ -1871,7 +1871,7 @@ void PolarCode::recursivelyCalcLLR(uint32_t lambda, uint32_t phi) {
 
 void PolarCode::recursivelyUpdateC(uint32_t lambda, uint32_t phi) {
 
-    // çˆ¶èŠ‚ç‚¹ç¼–å·
+    // ¸¸½Úµã±àºÅ
     uint32_t psi = phi >> 1;
 
     for (uint32_t l = 0; l < _list_size; ++l) {
@@ -1879,13 +1879,13 @@ void PolarCode::recursivelyUpdateC(uint32_t lambda, uint32_t phi) {
         if (_activePath.at(l) == 0)
             continue;
 
-        // å½“å‰èŠ‚ç‚¹çš„ç å­—çš„å†…å­˜
+        // µ±Ç°½ÚµãµÄÂë×ÖµÄÄÚ´æ
         uint8_t* c_lambda = getArrayPointer_C(lambda, l);
 
-        // çˆ¶èŠ‚ç‚¹çš„ç å­—çš„å†…å­˜
+        // ¸¸½ÚµãµÄÂë×ÖµÄÄÚ´æ
         uint8_t* c_lambda_1 = getArrayPointer_C(lambda - 1, l);
 
-        // å¾€ä¸Šé€’å½’
+        // ÍùÉÏµİ¹é
         uint32_t group_size = (1 << (_n - lambda));
         for (uint32_t beta = 0; beta < group_size; ++beta) {
 
@@ -1927,7 +1927,7 @@ void PolarCode::continuePaths_FrozenBit(uint32_t phi) {
 
 void PolarCode::continuePaths_UnfrozenBit(uint32_t phi) {
 
-    // læ¡è·¯å¾„ï¼Œæ¯æ¬¡å¢åˆ°2læ¡ï¼Œå†æ’å›læ¡
+    // lÌõÂ·¾¶£¬Ã¿´ÎÔöµ½2lÌõ£¬ÔÙÅÅ»ØlÌõ
     std::vector<double>  probForks((unsigned long)(2 * _list_size));
     std::vector<double> probabilities;
     std::vector<uint8_t>  contForks((unsigned long)(2 * _list_size));
@@ -1946,14 +1946,14 @@ void PolarCode::continuePaths_UnfrozenBit(uint32_t phi) {
 
             if (_llr_based_computation) {
 
-                // è·å–ç»“æœçš„ä¼¼ç„¶å€¼
+                // »ñÈ¡½á¹ûµÄËÆÈ»Öµ
                 double* llr_p = getArrayPointer_LLR(_n, l);
                 // pm = pm + ln(1+exp(-(1-2u)*llr))
 
-                // åˆ¤ä¸º0çš„
+                // ÅĞÎª0µÄ
                 probForks.at(2 * l) = -(_pathMetric_LLR.at(l) + log(1 + exp(-llr_p[0])));
 
-                // åˆ¤ä¸º1
+                // ÅĞÎª1
                 probForks.at(2 * l + 1) = -(_pathMetric_LLR.at(l) + log(1 + exp(llr_p[0])));
 
             }
@@ -1981,13 +1981,13 @@ void PolarCode::continuePaths_UnfrozenBit(uint32_t phi) {
     for (uint32_t l = 0; l < 2 * _list_size; ++l)
         contForks.at(l) = 0;
 
-    // ä»å¤§åˆ°å°æ’åº
+    // ´Ó´óµ½Ğ¡ÅÅĞò
     std::sort(probabilities.begin(), probabilities.end(), std::greater<double>());
 
     double threshold = probabilities.at((unsigned long)(rho - 1));
     uint32_t num_paths_continued = 0;
 
-    // é€‰æ‹©å­˜æ´»çš„è·¯å¾„
+    // Ñ¡Ôñ´æ»îµÄÂ·¾¶
     for (uint32_t l = 0; l < 2 * _list_size; ++l) {
 
         if (probForks.at(l) > threshold) {
@@ -2002,7 +2002,7 @@ void PolarCode::continuePaths_UnfrozenBit(uint32_t phi) {
 
     }
 
-    // å°æ¦‚ç‡äº‹ä»¶ï¼šå­˜åœ¨åº¦é‡å€¼ç›¸ç­‰çš„æƒ…å†µã€‚æç«¯----æ‰€æœ‰åº¦é‡å€¼éƒ½ä¸€æ ·ï¼Œæ­¤æ—¶æ‰¾ä¸åˆ°å¤§äºé—¨é™çš„è·¯å¾„ï¼Œåˆ™ç­‰äºé—¨é™çš„è·¯å¾„ä¹ŸåŠ å…¥ã€‚
+    // Ğ¡¸ÅÂÊÊÂ¼ş£º´æÔÚ¶ÈÁ¿ÖµÏàµÈµÄÇé¿ö¡£¼«¶Ë----ËùÓĞ¶ÈÁ¿Öµ¶¼Ò»Ñù£¬´ËÊ±ÕÒ²»µ½´óÓÚÃÅÏŞµÄÂ·¾¶£¬ÔòµÈÓÚÃÅÏŞµÄÂ·¾¶Ò²¼ÓÈë¡£
     if (num_paths_continued < rho) {
 
         for (uint32_t l = 0; l < 2 * _list_size; ++l) {
@@ -2026,7 +2026,7 @@ void PolarCode::continuePaths_UnfrozenBit(uint32_t phi) {
         if (_activePath.at(l) == 0)
             continue;
 
-        // éœ€è¦èˆå¼ƒçš„è·¯å¾„
+        // ĞèÒªÉáÆúµÄÂ·¾¶
         if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
             killPath(l);
 
@@ -2040,22 +2040,22 @@ void PolarCode::continuePaths_UnfrozenBit(uint32_t phi) {
 
         uint8_t* c_m = getArrayPointer_C(_n, l);
 
-        // éƒ½å­˜æ´»äº†
+        // ¶¼´æ»îÁË
         if (contForks.at(2 * l) == 1 && contForks.at(2 * l + 1) == 1) {
 
-            // è·¯å¾„lä¸ºåˆ¤ä¸º0çš„è·¯å¾„
+            // Â·¾¶lÎªÅĞÎª0µÄÂ·¾¶
             c_m[(phi % 2)] = 0;
 
-            // å¤åˆ¶è·¯å¾„låˆ°l_p
+            // ¸´ÖÆÂ·¾¶lµ½l_p
             uint32_t l_p = clonePath(l);
             c_m = getArrayPointer_C(_n, l_p);
             c_m[(phi % 2)] = 1;
 
-            // lè·¯å¾„å¤åˆ¶åˆ°l_p
+            // lÂ·¾¶¸´ÖÆµ½l_p
             std::copy(_arrayPointer_Info.at(l), _arrayPointer_Info.at(l) + phi, _arrayPointer_Info.at(l_p));
 
-            /// è¯´æ˜ï¼š
-            /// _arrayPointer_Infoæ”¾æœ€ç»ˆç»“æœï¼Œc_mæ”¾çš„æ˜¯å½“å‰phiä¸ºçš„è¯‘ç ç»“æœï¼Œæ˜¯æš‚æ—¶å˜é‡
+            /// ËµÃ÷£º
+            /// _arrayPointer_Info·Å×îÖÕ½á¹û£¬c_m·ÅµÄÊÇµ±Ç°phiÎªµÄÒëÂë½á¹û£¬ÊÇÔİÊ±±äÁ¿
             _arrayPointer_Info.at(l)[phi] = 0;
             _arrayPointer_Info.at(l_p)[phi] = 1;
 
@@ -2069,7 +2069,7 @@ void PolarCode::continuePaths_UnfrozenBit(uint32_t phi) {
         }
         else {
 
-            // è¯‘ä¸º0çš„è·¯å¾„å­˜æ´»
+            // ÒëÎª0µÄÂ·¾¶´æ»î
             if (contForks.at(2 * l) == 1) {
 
                 c_m[(phi % 2)] = 0;
@@ -2083,7 +2083,7 @@ void PolarCode::continuePaths_UnfrozenBit(uint32_t phi) {
                 }
 
             }
-            // è¯‘ä¸º1çš„è·¯å¾„å­˜æ´»
+            // ÒëÎª1µÄÂ·¾¶´æ»î
             else {
 
                 c_m[(phi % 2)] = 1;
@@ -2155,7 +2155,7 @@ void PolarCode::create_bit_rev_order() {
 std::vector<std::vector<double>> PolarCode::get_bler_quick(std::vector<double> ebno_vec,
     std::vector<uint32_t> list_size_vec) {
 
-    //åˆå§‹åŒ–---------------------------------------------
+    //³õÊ¼»¯---------------------------------------------
     int max_err = 10000;
     int max_runs = 10000;
 
@@ -2191,10 +2191,10 @@ std::vector<std::vector<double>> PolarCode::get_bler_quick(std::vector<double> e
     std::vector<double> llr(_block_length);
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-    // åˆå§‹åŒ–ç»“æŸ-------------------------------------------------------------------------------------
+    // ³õÊ¼»¯½áÊø-------------------------------------------------------------------------------------
 
 
-    // ä»¿çœŸå¼€å§‹---------------------------------------------------------------------------------------
+    // ·ÂÕæ¿ªÊ¼---------------------------------------------------------------------------------------
     for (int run = 0; run < max_runs; ++run) {
 
         // log
@@ -2205,7 +2205,7 @@ std::vector<std::vector<double>> PolarCode::get_bler_quick(std::vector<double> e
                 "; percent complete = " << (100 * run) / max_runs << "." << std::endl;
         }
 
-        // æ¯ä¸€ç™¾æ¬¡æ¢ä¸€æ¬¡ä¿¡æ¯
+        // Ã¿Ò»°Ù´Î»»Ò»´ÎĞÅÏ¢
         if ((run % 100) == 0) {
             for (uint32_t i = 0; i < _info_length; ++i) {
                 /*info_bits.at(i) = (uint8_t)(rand() % 2);*/
@@ -2213,12 +2213,12 @@ std::vector<std::vector<double>> PolarCode::get_bler_quick(std::vector<double> e
             }
         }
 
-        // å™ªå£°
+        // ÔëÉù
         for (uint32_t i = 0; i < _block_length; ++i) {
             noise.at(i) = (double)gauss_dist(generator);
         }
 
-        // ç å­—
+        // Âë×Ö
         if (_system_polar)
             coded_bits = sys_encode(info_bits);
         else
@@ -2229,20 +2229,20 @@ std::vector<std::vector<double>> PolarCode::get_bler_quick(std::vector<double> e
             bpsk.at(i) = 2.0f * ((double)coded_bits.at(i)) - 1.0f;
         }
 
-        // ä¸åŒè·¯å¾„æ•°é‡
+        // ²»Í¬Â·¾¶ÊıÁ¿
         for (uint32_t l_index = 0; l_index < list_size_vec.size(); ++l_index) {
 
             std::vector<bool> prev_decoded(0);
             prev_decoded.resize(ebno_vec.size(), false);
 
-            // ä¸åŒä¿¡å™ªæ¯”
+            // ²»Í¬ĞÅÔë±È
             for (unsigned i_ebno = 0; i_ebno < ebno_vec.size(); ++i_ebno) {
 
-                // max_erré™åˆ¶
+                // max_errÏŞÖÆ
                 if (num_err.at(l_index).at(i_ebno) > max_err)
                     continue;
 
-                // blockæ€»æ•°
+                // block×ÜÊı
                 num_run.at(l_index).at(i_ebno)++;
 
                 // trick
@@ -2258,21 +2258,21 @@ std::vector<std::vector<double>> PolarCode::get_bler_quick(std::vector<double> e
                     continue;
                 }
 
-                // ä¿¡å·
+                // ĞÅºÅ
                 double snr_sqrt_linear = std::pow(10.0f, ebno_vec.at(i_ebno) / 20)
                     * std::sqrt(((double)_info_length) / ((double)(_block_length)));
                 for (uint32_t i = 0; i < _block_length; ++i) {
                     received_signal.at(i) = snr_sqrt_linear * bpsk.at(i) + std::sqrt(N_0 / 2) * noise.at(i);
                 }
 
-                // ä¼¼ç„¶å€¼
+                // ËÆÈ»Öµ
                 for (uint32_t i = 0; i < _block_length; ++i) {
                     //                    p0.at(i) = exp(-(received_signal.at(i) + snr_sqrt_linear )*(received_signal.at(i) + snr_sqrt_linear )/N_0)/sigma_sqrt_pi;
                     //                    p1.at(i) = exp(-(received_signal.at(i) - snr_sqrt_linear )*(received_signal.at(i) - snr_sqrt_linear )/N_0)/sigma_sqrt_pi;
                     llr.at(i) = -4 * received_signal.at(i) * snr_sqrt_linear / N_0;
                 }
 
-                // è¯‘ç 
+                // ÒëÂë
                 // std::vector<uint8_t> decoded_info_bits = polar_code.decode_scl_p1(p1, p0, list_size);
                 std::vector<uint8_t> decoded_info_bits = decode_scl_llr(llr, list_size_vec.at(l_index));
 

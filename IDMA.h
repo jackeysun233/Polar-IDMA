@@ -2,6 +2,7 @@
 #define IDMA_H
 
 #include <vector>
+#include "PolarCode.h"
 
 using namespace std;
 
@@ -49,6 +50,11 @@ void calcError(const vector<vector<vector<int>>>& output_data,
 
 // 调用PolarCode类进行信道编码
 void ChannelEncode(const vector<vector<int>>& input_data, PolarCode& pc, vector<vector<int>>& encoded_data);
+
+// 调用PolarCode类进行信道译码
+void ChannelDecoder(const vector<vector<double>>& deSpData,
+    vector<vector<vector<int>>>& output_data,
+    int i, PolarCode& pc);
 
 
 #endif // FUNCTIONS_H

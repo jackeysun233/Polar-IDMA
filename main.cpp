@@ -15,6 +15,7 @@ const int SF = 300;                         // 扩频的倍数
 const int N = 32;                           // 编码后的码字长度
 const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
+const int L = 16;                           // Polar Code 的 list size
 
 const double SNR_BEGIN = -15;
 const double SNR_END = -15;
@@ -46,7 +47,7 @@ void montecarlosimulation() {
     vector<vector<int>> encoded_data(NUSERS, vector<int>(N));       // 编码后的信息
     vector<vector<double>> noise(Nr, vector<double>(FrameLen));// 高斯信道白噪声
     vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen)));// 信道衰落系数
-    vector<vector<double>> modulated_data(NUSERS, vector<double>(NBITS));// 调制后的信息
+    vector<vector<double>> modulated_data(NUSERS, vector<double>(N));// 调制后的信息
     vector<vector<int>> ILidx(NUSERS, vector<int>(NBITS));// 随机交织器
     vector<vector<double>> spreaded_data(NUSERS, vector<double>(FrameLen));// 扩频后的数据
     vector<vector<double>> ILData(NUSERS, vector<double>(FrameLen));// 交织后的数据
@@ -104,7 +105,9 @@ void montecarlosimulation() {
             InterLeaver(extLLR, ILidx, apLLR);                                       // 交织
         }
 
-        hardDecision(deSpData, output_data, i);                                      // 进行硬判决
+        ChannelDecoder(deSpData, output_data, i, pc);
+
+        // hardDecision(deSpData, output_data, i);                                      // 进行硬判决
     }
 
     // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
