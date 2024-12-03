@@ -24,6 +24,9 @@
     <ClCompile Include="INIT.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="PolarCode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDMA.h">
@@ -36,6 +39,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Threadpool.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PolarCode.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -47,4 +47,8 @@ void calcError(const vector<vector<vector<int>>>& output_data,
     const vector<vector<int>>& input_data,
     int sim);
 
+// 调用PolarCode类进行信道编码
+void ChannelEncode(const vector<vector<int>>& input_data, PolarCode& pc, vector<vector<int>>& encoded_data);
+
+
 #endif // FUNCTIONS_H

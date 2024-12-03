@@ -15,6 +15,7 @@
 #include <math.h>
 #include <stack>          // std::stack
 #include <algorithm>
+#include <bits/stdc++.h>
 #include "ThreadPool.h"
 
 enum class NodeType {

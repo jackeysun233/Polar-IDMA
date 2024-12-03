@@ -3,6 +3,7 @@
 #include <random>
 #include <iostream>
 #include "IDMA.h"
+#include "PolarCode.h"
 #include "global_variables.h"
 
 using namespace std;
@@ -280,6 +281,26 @@ void calcError(const vector<vector<vector<int>>>& output_data,
         // 计算并更新 BER 和 PUPE
         BER[snr][sim] = static_cast<double>(bit_errors) / total_bits;
         PUPE[snr][sim] = static_cast<double>(block_errors) / NUSERS;
+    }
+}
+
+// 调用PolarCode类进行信道编码
+void ChannelEncode(const vector<vector<int>>& input_data, PolarCode& pc, vector<vector<int>>& encoded_data) {
+    // 遍历每个用户
+    for (int k = 0; k < NUSERS; ++k) {
+        // 将输入数据转换为 uint8_t 类型
+        vector<uint8_t> tmp(input_data[k].size());
+        transform(input_data[k].begin(), input_data[k].end(), tmp.begin(), [](int x) {
+            return static_cast<uint8_t>(x);
+            });
+
+        // 获取编码后的数据
+        vector<uint8_t> encoded = pc.encode(tmp);
+
+        // 将编码后的数据转换为 int 类型并存储到 encoded_data 中
+        for (size_t i = 0; i < encoded.size(); ++i) {
+            encoded_data[k][i] = static_cast<int>(encoded[i]);  // 转换为 int 并存储
+        }
     }
 }
 

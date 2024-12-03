@@ -1,5 +1,6 @@
 #include "PolarCode.h"
 #include <bits/stdc++.h>
+#include <random>
 
 
 
@@ -485,40 +486,23 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
     for (uint32_t cnt = 0; cnt < _nodes_type.size(); cnt++) {
         // 快速节点的意义在于，对下给出答案，对上给出码字
         if (_nodes_type[cnt].type == NodeType::R0) {
-
-            /// 需要修改PM数值？
-            /// 可以不修改
-            /// 直接给出码字和结果
-            /// 需要写c_0[层数][l]
-            /// 首先递归到所属于的层级，然后快速译码
             int begin = _nodes_type[cnt].begin;
             int end = _nodes_type[cnt].end;
-            // 计算快速节点的似然值位于哪一层，父节点是哪一个
-
-            /// 注意到，recursivelyCalcLLR是同时计算L条路径的
             int sub_code_layer_num = log2(end - begin + 1);
             int parent = end / (pow(2, sub_code_layer_num));
             int layer = _n - sub_code_layer_num;
             recursivelyCalcLLR(layer, parent);
-
-            /// 需要知道是(父节点)->(兄弟节点，自己)还是(父节点)->(自己，兄弟节点)
-            /// 偶数一定是右节点
             int left_right = parent % 2;
-
 
             for (uint32_t l = 0; l < _list_size; ++l) {
 
-                // 如果路径激活
                 if (_activePath.at(l) == 0)
                     continue;
                 /*double* llr_lambda = getArrayPointer_LLR(layer, l);*/
                 uint8_t* c_lambda = getArrayPointer_C(layer, l);
-
-                /// 全部置零
                 uint32_t group_size = (1 << (_n - layer));
                 for (size_t beta = 0; beta < group_size; beta++) {
                     c_lambda[beta + left_right * group_size] = 0;
-                    // 直接放结果，全0
                     _arrayPointer_Info.at(l)[begin + beta] = 0;
                 }
 
@@ -529,8 +513,6 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
         }
         else if (_nodes_type[cnt].type == NodeType::R1) {
 
-            /// 需要修改PM数值
-            /// 需要找错误图样，然后翻转
 
             int begin = _nodes_type[cnt].begin;
             int end = _nodes_type[cnt].end;
@@ -541,13 +523,11 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
             int layer = _n - sub_code_layer_num;
             recursivelyCalcLLR(layer, parent);
 
-            // l条路径，每次增到2l条，再排回l条
             std::vector<double>  probForks((unsigned long)(2 * _list_size));
             std::vector<double> probabilities;
             std::vector<uint8_t>  contForks((unsigned long)(2 * _list_size));
             uint32_t  i = 0;
 
-            // 最小的似然值的位置以及是1是0
             std::vector<int> pos(_list_size);
             std::vector<double> minns(_list_size, std::numeric_limits<double>::max());
 
@@ -563,11 +543,9 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                 }
                 else {
 
-                    // 获取结果的似然值
                     double* llr_p = getArrayPointer_LLR(layer, l);
                     uint8_t* c_lambda = getArrayPointer_C(layer, l);
 
-                    // 计算PM
                     probForks.at(2 * l) = -_pathMetric_LLR.at(l);
                     probForks.at(2 * l + 1) = -_pathMetric_LLR.at(l);
                     for (size_t beta = 0; beta < group_size; beta++) {
@@ -576,14 +554,13 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
                     }
                     probForks.at(2 * l + 1) = probForks.at(2 * l);
 
-                    // 找最绝对值小的似然值
                     for (size_t beta = 0; beta < sub_code_length; beta++) {
                         if (abs(minns[l]) > abs(llr_p[beta])) {
                             minns[l] = llr_p[beta];
                             pos[l] = beta;
                         }
                     }
-                    // 翻转,保证probForks.at(2 * l)中的最后是0,便于后续代码
+                   
                     if (c_lambda[pos[l] + left_right * group_size] == 0) {
                         probForks.at(2 * l + 1) += exp(-minns[l]);
                         probForks.at(2 * l + 1) -= exp(minns[l]);
@@ -663,13 +640,11 @@ std::vector<uint8_t> PolarCode::decode_fast_scl() {
 
             for (unsigned l = 0; l < _list_size; ++l) {
 
-                // 没选上
                 if (contForks.at(2 * l) == 0 && contForks.at(2 * l + 1) == 0)
                     continue;
 
                 uint8_t* c_lambda = getArrayPointer_C(layer, l);
 
-                // 都存活了
                 if (contForks.at(2 * l) == 1 && contForks.at(2 * l + 1) == 1) {
 
                     // 路径l为判为0的路径
