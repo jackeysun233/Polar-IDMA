@@ -23,6 +23,7 @@ extern const int NUM_FRAMES;   // 帧数量
 extern const int NUM_PRINT;    // 打印显示间隔
 extern const int BlockLen;     // 块衰落的长度
 
+extern const string CodeMode;  // 控制编码模式（Polar or None）
 extern const bool IsFading;    // 控制衰落模式（全局开关）
 
 extern std::string filename;   // 数据保存的文件名

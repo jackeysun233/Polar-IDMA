@@ -158,6 +158,14 @@ void PrintHeader() {
         << left << setw(15) << "功率分配:" << SF << "\n"
         << left << setw(15) << "编码:" << "K = " << NBITS << ", N = " << N << "\n"
         << left << setw(15) << "衰落块长度:" << BlockLen << "\n";
+    
+    // 根据CodeMode值打印编码模式
+    if (CodeMode == "None") {
+        std::cout << std::left << std::setw(15) << "编码模式:" << "None" << "\n";
+    }
+    else if (CodeMode == "Polar") {
+        std::cout << std::left << std::setw(15) << "编码模式:" << "Polar" << "\n";
+    }
 
 }
 
@@ -167,7 +175,7 @@ void PrintToConsole(int sim) {
     // 假设控制台已经有固定的行数用于显示结果
     // 这里假设需要刷新大约 10 行，可以根据实际情况调整
     // ANSI 转义序列：移动光标到表头下方
-    const int header_lines = 8; // 表头占用的行数，包括 SNR 横向表头和分隔线
+    const int header_lines = 9; // 表头占用的行数，包括 SNR 横向表头和分隔线
     cout << "\033[" << header_lines + 1 << "H"; // 移动光标到表头下方
 
     // 打印仿真次数和数据

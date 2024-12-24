@@ -235,10 +235,10 @@ void hardDecision(const vector<vector<double>>& deSpData,
         for (size_t bit = 0; bit < NBITS; ++bit) {
             // 对每个接收到的符号进行硬判决
             if (deSpData[user][bit] > 0) {
-                output_data[i][user][bit] = 1;  // 判决为1
+                output_data[i][user][bit] = 0;  // 判决为1
             }
             else {
-                output_data[i][user][bit] = 0;  // 判决为0
+                output_data[i][user][bit] = 1;  // 判决为0
             }
         }
     }
