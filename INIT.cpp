@@ -156,8 +156,7 @@ void PrintHeader() {
         << left << setw(15) << "用户信息长度:" << NBITS << "\n"
         << left << setw(15) << "接收天线数量:" << Nr << "\n"
         << left << setw(15) << "功率分配:" << SF << "\n"
-        << left << setw(15) << "编码:" << "K = " << NBITS << ", N = " << N << "\n"
-        << left << setw(15) << "衰落块长度:" << BlockLen << "\n";
+        << left << setw(15) << "编码:" << "K = " << NBITS << ", N = " << N << "\n";
     
     // 根据CodeMode值打印编码模式
     if (CodeMode == "None") {
@@ -165,6 +164,14 @@ void PrintHeader() {
     }
     else if (CodeMode == "Polar") {
         std::cout << std::left << std::setw(15) << "编码模式:" << "Polar" << "\n";
+    }
+
+    // 根据IsFading值打印块衰落长度
+    if (IsFading == true) {
+        std::cout << std::left << std::setw(15) << "衰落块长度:" << BlockLen << "\n";
+    }
+    else if (IsFading == false) {
+        std::cout << std::left << std::setw(15) << "信道模型:" << "AWGN" << "\n";
     }
 
 }
