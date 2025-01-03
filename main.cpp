@@ -10,17 +10,17 @@ using namespace std;
 // 声明全局变量
 const int NUSERS = 1;                      // 活跃用户数量
 const int NBITS = 10;                       // 每个用户发送的比特数量
-const int SF = 300;                           // 扩频的倍数
+const int SF = 840;                           // 扩频的倍数
 const int N = 10;                          // 编码后的码字长度(请根据CodeMode修改,32)
 const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 const int L = 32;                           // Polar Code 的 list size
 
-const double SNR_BEGIN = -17;
+const double SNR_BEGIN = -26;
 const double SNR_END = -18;
-const int SNR_NUM = 2;
+const int SNR_NUM = 5;
 
-const int NUM_FRAMES = 100000;              // 帧数量
+const int NUM_FRAMES = 1000;              // 帧数量
 const int NUM_PRINT = 100;                  // 打印显示间隔
 
 const bool IsFading = true;                 // 控制衰落模式
@@ -163,7 +163,7 @@ void PureIDMA() {
 
     // 计算不同SNR下的误码率
     for (int i = 0; i < SNR_NUM; ++i) {
-        double noise_variance = 1.0 /  snr[i] ;    // 计算当前snr下的噪声功率
+        double noise_variance = 1.0 / snr[i] ;    // 计算当前snr下的噪声功率
 
         channel(ILData, FadingCoff, noise, noise_variance, RxData);
         processMIMOData(RxData, FadingCoff, avg_RxData, avg_FadingCoff);
