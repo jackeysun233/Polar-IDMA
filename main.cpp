@@ -114,7 +114,7 @@ void PolarCodeIDMA() {
     // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
     {
         std::lock_guard<std::mutex> lock(data_mutex);
-                                    
+
         calcError(output_data, input_data, cnt); // 计算误码率
         if (cnt % NUM_PRINT == 0) {
             PrintToConsole(cnt);    // 满足打印条件时，打印一次结果
@@ -142,7 +142,7 @@ void PureIDMA() {
     vector<vector<double>> RxData(Nr, vector<double>(FrameLen));// 接收机的接收数据
     vector<double> avg_RxData(FrameLen);// 均衡后的接收机数据
     vector<vector<double>> avg_FadingCoff(NUSERS, vector<double>(FrameLen));// 均衡后的衰落系数
-    vector<vector<double>> apLLR(NUSERS,vector<double>(FrameLen,0.0));// ESE输入软信息
+    vector<vector<double>> apLLR(NUSERS, vector<double>(FrameLen, 0.0));// ESE输入软信息
     vector<vector<double>> extrLLR(NUSERS, vector<double>(FrameLen, 0.0));// ESE输出软信息
 
     vector<vector<double>> deSpData(NUSERS, vector<double>(N));// 解扩频后的数据
@@ -163,7 +163,7 @@ void PureIDMA() {
 
     // 计算不同SNR下的误码率
     for (int i = 0; i < SNR_NUM; ++i) {
-        double noise_variance = 1.0 / snr[i] ;    // 计算当前snr下的噪声功率
+        double noise_variance = 1.0 / snr[i];    // 计算当前snr下的噪声功率
 
         channel(ILData, FadingCoff, noise, noise_variance, RxData);
         processMIMOData(RxData, FadingCoff, avg_RxData, avg_FadingCoff);
@@ -172,8 +172,8 @@ void PureIDMA() {
         for (int r = 0; r < IDMAitr; ++r) {
 
             calESE(avg_RxData, apLLR, avg_FadingCoff, noise_variance, extrLLR);     // 计算ESE
-            deInterleaver(extrLLR,ILidx,deILData);                                  // 解交织
-            despreader(deILData,deSpData);                                          // 解扩频
+            deInterleaver(extrLLR, ILidx, deILData);                                  // 解交织
+            despreader(deILData, deSpData);                                          // 解扩频
 
             spreader(deSpData, spreaded_data);                                      // 扩频
 
@@ -186,7 +186,7 @@ void PureIDMA() {
             InterLeaver(extLLR, ILidx, apLLR);                                      // 交织
         }
 
-        hardDecision(deSpData, output_data,i);                                      // 进行硬判决
+        hardDecision(deSpData, output_data, i);                                      // 进行硬判决
     }
 
     // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
