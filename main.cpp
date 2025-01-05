@@ -8,7 +8,7 @@
 using namespace std;
 
 // 声明全局变量
-const int NUSERS = 1;                      // 活跃用户数量
+const int NUSERS = 10;                      // 活跃用户数量
 const int NBITS = 10;                       // 每个用户发送的比特数量
 const int SF = 840;                           // 扩频的倍数
 const int N = 10;                          // 编码后的码字长度(请根据CodeMode修改,32)
@@ -16,11 +16,11 @@ const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 const int L = 32;                           // Polar Code 的 list size
 
-const double SNR_BEGIN = -26;
-const double SNR_END = -18;
-const int SNR_NUM = 5;
+const double SNR_BEGIN = -20;
+const double SNR_END = -20;
+const int SNR_NUM = 1;
 
-const int NUM_FRAMES = 1000;              // 帧数量
+const int NUM_FRAMES = 50000;              // 帧数量
 const int NUM_PRINT = 100;                  // 打印显示间隔
 
 const bool IsFading = true;                 // 控制衰落模式
@@ -95,11 +95,11 @@ void PolarCodeIDMA() {
 
             spreader(deSpData, spreaded_data);                                      // 扩频
 
-            //for (size_t user = 0; user < NUSERS; ++user) {
-            //    for (size_t i = 0; i < FrameLen; ++i) {
-            //        extLLR[user][i] = spreaded_data[user][i] - deILData[user][i];   // 迭代之后做差值
-            //    }
-            //}
+            for (size_t user = 0; user < NUSERS; ++user) {
+                for (size_t i = 0; i < FrameLen; ++i) {
+                    extLLR[user][i] = spreaded_data[user][i] - deILData[user][i];   // 迭代之后做差值
+                }
+            }
 
             extLLR = spreaded_data;
 
@@ -132,11 +132,11 @@ void PolarCodeIDMA() {
 void PureIDMA() {
 
     // 声明线程内私有变量
-    vector<vector<int>> input_data(NUSERS, vector<int>(NBITS));     // 用户输入的信息
-    vector<vector<double>> noise(Nr, vector<double>(FrameLen));// 高斯信道白噪声
-    vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen)));// 信道衰落系数
+    vector<vector<int>> input_data(NUSERS, vector<int>(NBITS,0));     // 用户输入的信息
+    vector<vector<double>> noise(Nr, vector<double>(FrameLen,0.1));// 高斯信道白噪声
+    vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen,1.0)));// 信道衰落系数
     vector<vector<double>> modulated_data(NUSERS, vector<double>(NBITS));// 调制后的信息
-    vector<vector<int>> ILidx(NUSERS, vector<int>(NBITS));// 随机交织器
+    vector<vector<int>> ILidx(NUSERS, vector<int>(FrameLen));// 随机交织器
     vector<vector<double>> spreaded_data(NUSERS, vector<double>(FrameLen));// 扩频后的数据
     vector<vector<double>> ILData(NUSERS, vector<double>(FrameLen));// 交织后的数据
     vector<vector<double>> RxData(Nr, vector<double>(FrameLen));// 接收机的接收数据
@@ -152,10 +152,82 @@ void PureIDMA() {
     vector<vector<vector<int>>> output_data(SNR_NUM, vector<vector<int>>(NUSERS, vector<int>(NBITS)));// 用户输入的信息
 
     // 初始化程序
-    GenMessage(input_data);
-    GenNoise(noise);
-    GenFadingCoff(FadingCoff);
-    GenILidx(ILidx);
+    //GenMessage(input_data); // 默认发送信息是0
+    //GenNoise(noise);  // 噪声基数默认设置为0.1
+    //GenFadingCoff(FadingCoff);  // 衰落系数默认设置为1.0
+    //GenILidx(ILidx);  // 使用默认的随机交织器
+
+    // 存储文件
+
+    //// 指定CSV文件的名称
+    //std::string filename = "ILidx.csv";
+
+    //// 打开CSV文件用于写入
+    //std::ofstream file(filename);
+    //if (!file.is_open()) {
+    //    std::cerr << "无法打开文件: " << filename << std::endl;
+    //}
+
+    //// 将ILidx写入CSV文件
+    //for (const auto& userIdx : ILidx) {
+    //    for (size_t i = 0; i < userIdx.size(); ++i) {
+    //        file << userIdx[i];
+    //        if (i != userIdx.size() - 1) {
+    //            file << ","; // 逗号分隔
+    //        }
+    //    }
+    //    file << "\n"; // 每个用户的索引在新的一行
+    //}
+
+    //// 关闭文件
+    //file.close();
+    //std::cout << "ILidx 已成功导出到 " << filename << std::endl;
+
+    // 读取文件
+
+    std::string filename = "ILidx.csv";
+
+    // 打开 CSV 文件
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "无法打开文件: " << filename << std::endl;
+
+    }
+
+    // 逐行读取 CSV 文件
+    std::string line;
+    int row = 0;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string value;
+        int col = 0;
+
+        // 逐个提取每列的值
+        while (std::getline(ss, value, ',')) {
+            // 去除空格
+            value.erase(remove_if(value.begin(), value.end(), ::isspace), value.end());
+            // 尝试将每个值转换为整数
+            int num = std::stoi(value);
+            ILidx[row][col] = num;
+            ++col;
+        }
+        ++row;
+    }
+
+    // 关闭文件
+    file.close();
+
+    // 输出读取的内容
+    std::cout << "读取的 ILidx:" << std::endl;
+    for (int i = 0; i < NUSERS; ++i) {
+        for (int j = 0; j < NBITS; ++j) {
+            std::cout << ILidx[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+
+
 
     Modulate(input_data, modulated_data);
     spreader(modulated_data, spreaded_data);
@@ -207,7 +279,7 @@ void PureIDMA() {
 }
 
 int main() {
-    ThreadPool pool(8);     // 使用的线程数量
+    ThreadPool pool(1);     // 使用的线程数量
 
     OpenDataFile();         // 打开数据存储文件
     GenSNR();               // 生成待仿真的SNR向量
