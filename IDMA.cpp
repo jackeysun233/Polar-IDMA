@@ -46,7 +46,7 @@ void spreader(const vector<vector<double>>& inputData, vector<vector<double>>& s
     // 生成伪随机扩频序列
     vector<int> repCode(SF);
     for (size_t i = 0; i < SF; ++i) {
-        repCode[i] = 1 - 2 * (i % 2);  // 1-2*mod(0:(SF-1), 2)
+        repCode[i] = - 1 + 2 * (i % 2);  // 1-2*mod(0:(SF-1), 2)
     }
 
 
