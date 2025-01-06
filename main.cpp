@@ -138,7 +138,7 @@ void PureIDMA() {
     // 声明线程内私有变量
     vector<vector<int>> input_data(NUSERS, vector<int>(NBITS,0));     // 用户输入的信息
     vector<vector<double>> noise(Nr, vector<double>(FrameLen,0.1));// 高斯信道白噪声
-    vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen,1.0)));// 信道衰落系数
+    vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen,0.9)));// 信道衰落系数
     vector<vector<double>> modulated_data(NUSERS, vector<double>(NBITS));// 调制后的信息
     vector<vector<int>> ILidx(NUSERS, vector<int>(FrameLen));// 随机交织器
     vector<vector<double>> spreaded_data(NUSERS, vector<double>(FrameLen));// 扩频后的数据
@@ -262,7 +262,7 @@ void PureIDMA() {
             InterLeaver(extLLR, ILidx, apLLR);                                      // 交织
         }
 
-        hardDecision(deSpData, output_data, i);                                      // 进行硬判决
+        hardDecision(deSpData, output_data,i);                                      // 进行硬判决
     }
 
     // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行

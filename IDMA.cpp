@@ -46,7 +46,7 @@ void spreader(const vector<vector<double>>& inputData, vector<vector<double>>& s
     // 生成伪随机扩频序列
     vector<int> repCode(SF);
     for (size_t i = 0; i < SF; ++i) {
-        repCode[i] = - 1 + 2 * (i % 2);  // 1-2*mod(0:(SF-1), 2)
+        repCode[i] =  1 - 2 * (i % 2);  // 1-2*mod(0:(SF-1), 2)
     }
 
 
@@ -139,7 +139,7 @@ void Modulate(const vector<vector<int>>& input_data, vector<vector<double>>& mod
     for (int user = 0; user < NUSERS; ++user) {
         for (int bit = 0; bit < input_data[0].size(); ++bit) {
             // 对每个比特进行调制
-            modulated_data[user][bit] = (input_data[user][bit] == 0) ? 1.0 : -1.0;
+            modulated_data[user][bit] = (input_data[user][bit] == 0) ? -1.0 : 1.0;
         }
     }
 }
@@ -235,10 +235,10 @@ void hardDecision(const vector<vector<double>>& deSpData,
         for (size_t bit = 0; bit < NBITS; ++bit) {
             // 对每个接收到的符号进行硬判决
             if (deSpData[user][bit] > 0) {
-                output_data[i][user][bit] = 0;  // 判决为0
+                output_data[i][user][bit] = 1;  // 判决为0
             }
             else {
-                output_data[i][user][bit] = 1;  // 判决为1
+                output_data[i][user][bit] = 0;  // 判决为1
             }
         }
     }
