@@ -134,7 +134,7 @@ void PureIDMA() {
     // 声明线程内私有变量
     vector<vector<int>> input_data(NUSERS, vector<int>(NBITS,0));     // 用户输入的信息
     vector<vector<double>> noise(Nr, vector<double>(FrameLen,0.1));// 高斯信道白噪声
-    vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen,1.0)));// 信道衰落系数
+    vector<vector<vector<double>>> FadingCoff(Nr, vector<vector<double>>(NUSERS, vector<double>(FrameLen,0.9)));// 信道衰落系数
     vector<vector<double>> modulated_data(NUSERS, vector<double>(NBITS));// 调制后的信息
     vector<vector<int>> ILidx(NUSERS, vector<int>(FrameLen));// 随机交织器
     vector<vector<double>> spreaded_data(NUSERS, vector<double>(FrameLen));// 扩频后的数据
@@ -246,7 +246,7 @@ void PureIDMA() {
             calESE(avg_RxData, apLLR, avg_FadingCoff, noise_variance, extrLLR);     // 计算ESE
             deInterleaver(extrLLR,ILidx,deILData);                                  // 解交织
             despreader(deILData,deSpData);                                          // 解扩频
-
+                                                                                    // 信道译码
             spreader(deSpData, spreaded_data);                                      // 扩频
 
             for (size_t user = 0; user < NUSERS; ++user) {
