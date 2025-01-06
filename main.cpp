@@ -8,7 +8,7 @@
 using namespace std;
 
 // 声明全局变量
-const int NUSERS = 1;                      // 活跃用户数量
+const int NUSERS = 10;                      // 活跃用户数量
 const int NBITS = 10;                       // 每个用户发送的比特数量
 const int SF = 840;                           // 扩频的倍数
 const int N = 10;                          // 编码后的码字长度(请根据CodeMode修改,32)(可能会有问题吗？？)
@@ -16,9 +16,9 @@ const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 const int L = 32;                           // Polar Code 的 list size
 
-const double SNR_BEGIN = -20;
-const double SNR_END = -20;
-const int SNR_NUM = 1;
+const double SNR_BEGIN = -26;
+const double SNR_END = -18;
+const int SNR_NUM = 5;
 
 const int NUM_FRAMES = 50000;              // 帧数量
 const int NUM_PRINT = 100;                  // 打印显示间隔

@@ -66,7 +66,7 @@ void despreader(const vector<vector<double>>& spreadedData, vector<vector<double
 
 
     // 初始化 despreadedData 矩阵，大小为 NUSERS x N
-    despreadedData.resize(NUSERS, vector<double>(N, 0));
+    despreadedData.assign(NUSERS, vector<double>(N, 0));
 
     // 对每个用户的数据进行反扩频处理
     for (size_t i = 0; i < NUSERS; ++i) {
