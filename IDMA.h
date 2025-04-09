@@ -65,7 +65,19 @@ vector<vector<double>> Transmitter(
 vector<double> Channel(double sigma,
     const vector<double>& Noise,
     const vector<vector<double>>& H,
-    const vector<vector<double>>& Tx);
+    const vector<vector<double>>& Tx
+);
+
+vector<vector<double>> Receiver(
+    const double sigma,
+    const int IDMAitr,
+    const vector<vector<int>>& ScrambleRule,
+    const vector<int>& SpreadSeq,
+    const vector<vector<double>>& H,
+    const vector<double> Rx
+);
+
+
 
 
 

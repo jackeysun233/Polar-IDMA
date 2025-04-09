@@ -1,6 +1,10 @@
 #ifndef GLOBAL_VARIABLES_H
 #define GLOBAL_VARIABLES_H
 
+
+#define		STEP(x)		( (x) > 0 ? 0 : 1 )
+
+
 #include <vector>
 #include <string>
 

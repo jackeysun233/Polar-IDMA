@@ -284,6 +284,7 @@ void calcError(const vector<vector<vector<int>>>& output_data,
     }
 }
 
+
 // 调用PolarCode类进行信道编码
 void ChannelEncode(const vector<vector<int>>& input_data, PolarCode& pc, vector<vector<int>>& encoded_data) {
     // 遍历每个用户
@@ -326,24 +327,21 @@ const vector<vector<int>>& ScrambleRule,
 const vector<int>& SpreadSeq
 )
 {
-    int i, j, nuser;
-    
-    double tmp;
 
     vector<vector<double>> Chip(NUSERS, vector<double>(FrameLen));
     vector<vector<double>> Tx(NUSERS, vector<double>(FrameLen));
 
 
     // Spreading process.
-    for (int j = 0; j < NUSERS; j++) for (int i = 0; i < FrameLen; i++)
+    for (int j = 0; j < NUSERS; j++) for (int k = 0; k < NBITS; k++)
     {    
-        tmp = 1 - (2 * InputData[j][i]);
-        for (int s= 0; s < SF; s++) Chip[j][i] = tmp * SpreadSeq[s];
+        double tmp = 1 - (2 * InputData[j][k]);
+        for (int s= 0; s < SF; s++) Chip[j][k*SF+s] = tmp * SpreadSeq[s];
     }
 
     // Interleaving process.
     for (int j = 0; j < NUSERS; j++) for (int i = 0; i < FrameLen; i++)
-        Tx[nuser][i] = Chip[nuser][ScrambleRule[nuser][i]];
+        Tx[j][i] = Chip[j][ScrambleRule[j][i]];
 
     return Tx;
 }
@@ -365,12 +363,14 @@ vector<double> Channel(double sigma,
         for (int j = 0; j < NUSERS; j++) Rx[i] += H[j][i] * Tx[j][i];
     }
 
+    return Rx;
 }
 
 vector<vector<double>> Receiver(
     const double sigma,
     const int IDMAitr,
     const vector<vector<int>>& ScrambleRule,
+    const vector<int>& SpreadSeq,
     const vector<vector<double>>& H,
     const vector<double> Rx
 ) {
@@ -382,6 +382,11 @@ vector<vector<double>> Receiver(
     // 定义并初始化 Mean 和 Var
     vector<vector<double>> Mean(NUSERS, vector<double>(FrameLen, 0.0)); // 用户均值，初始化为 0
     vector<vector<double>> Var(NUSERS, vector<double>(FrameLen, 0.0));  // 用户方差，初始化为 0
+    
+    // 定义过程变量
+    vector<vector<double>> Chip(NUSERS, vector<double>(FrameLen, 0.0));
+    vector<vector<double>> AppLlr(NUSERS, vector<double>(NBITS, 0.0));
+    vector<vector<double>> Ext(NUSERS, vector<double>(FrameLen, 0.0));
 
 
 
@@ -409,26 +414,32 @@ vector<vector<double>> Receiver(
             Chip[j][ScrambleRule[j][i]] = 2 * H[j][i] * (Rx[i] - TotalMean[i]) / TotalVar[i];
         }
 
-        // De-spreading operation.(TODO)
+        // 进行清零操作
         for (int k = 0; k < NBITS; k++)
+            AppLlr[j][k] = 0.0;
+
+        // De-spreading operation.
+        for (int k = 0; k < NBITS; k++) for (int s = 0; s < SF; s++)
         {
-            
-            for (int s = 0; s < SF; s++) appllr[k] += SpreadSeq[s] * chip[m++];
+             AppLlr[j][k] += SpreadSeq[s] * Chip[j][k * SF + s];
         }
 
         // Feed the AppLlr to decoder, if there is a FEC codec in the system.
 
         // Spreading operation: Produce the extrinsic LLR for each chip
-        for (m = i = 0; i < _DataLen; i++) for (j = 0; j < _SpreadLen; j++, m++)
-            Ext[nuser][m] = SpreadSeq[j] * AppLlr[nuser][i] - Chip[nuser][m];
+        for (int k = 0; k < NBITS; k++) for (int s = 0; s < SF; s++)
+            Ext[j][k * SF + s] = SpreadSeq[s] * AppLlr[j][k] - Chip[j][k * SF + s];
 
         // Update the statistic variable together with the interleaving process.
-        for (i = 0; i < _ChipLen; i++)
+        for (int i = 0; i < FrameLen; i++)
         {
-            Mean[nuser][i] = H[nuser] * tanh(Ext[nuser][ScrambleRule[nuser][i]] / 2);
-            Var[nuser][i] = H2[nuser] - Mean[nuser][i] * Mean[nuser][i];
-            TotalMean[i] += Mean[nuser][i];
-            TotalVar[i] += Var[nuser][i];
+            Mean[j][i] = H[j][i] * tanh(Ext[j][ScrambleRule[j][i]] / 2);
+            Var[j][i] = H[j][i]* H[j][i] - Mean[j][i] * Mean[j][i];
+            TotalMean[i] += Mean[j][i];
+            TotalVar[i] += Var[j][i];
         }
     }
+
+    return AppLlr;
 }
+

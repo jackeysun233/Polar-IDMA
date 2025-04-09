@@ -22,8 +22,8 @@ const double SNR_BEGIN = 5;
 const double SNR_END = 10;
 const int SNR_NUM = 6;
 
-const int NUM_FRAMES = 200000;               // 帧数量
-const int NUM_PRINT = 1000;                  // 打印显示间隔
+const int NUM_FRAMES = 20000;               // 帧数量
+const int NUM_PRINT = 10;                  // 打印显示间隔
 
 const bool IsFading = false;                 // 控制衰落模式
 const string CodeMode = "None";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
@@ -257,16 +257,19 @@ int main() {
     OpenDataFile();         // 打开数据存储文件
     GenSNR();               // 生成待仿真的snr向量
     PrintHeader();          // 打印表头
-    
-	vector<int> SpreadSeq(FrameLen); // 扩频序列
-	vector<vector<int>> ScrambleRule(NUSERS,vector<int>(FrameLen)); // 交织器
+
+    vector<int> SpreadSeq(SF); // 扩频序列
+    vector<vector<int>> ScrambleRule(NUSERS, vector<int>(FrameLen)); // 交织器
     vector<vector<int>> InputData(NUSERS, vector<int>(NBITS, 0));
+
+    vector<vector<vector<int>>> OutputData(SNR_NUM, vector<vector<int>>(NUSERS, vector<int>(NBITS, 0)));
+
 
     vector<double> Noise(FrameLen, 0.0);
     vector<vector<double>> H(NUSERS, vector<double>(FrameLen, 1.0));
 
     // 生成扩频序列 {+1, -1, +1, -1, ... }.
-    for (int i = 0; i <FrameLen; i++) SpreadSeq[i] = 1 - 2 * (i % 2);
+    for (int i = 0; i < SF; i++) SpreadSeq[i] = 1 - 2 * (i % 2);
 
     // 生成交织器索引
     for (int j = 0; j < NUSERS; j++)
@@ -296,7 +299,7 @@ int main() {
 
 
     for (int sim = 0; sim < NUM_FRAMES; ++sim) {
-        
+
         // 生成噪声
         for (int i = 0; i < FrameLen; ++i) {
             Noise[i] = distribution(generator);
@@ -313,53 +316,36 @@ int main() {
 
         // 计算不同SNR下的误码率
         for (int i = 0; i < SNR_NUM; ++i) {
-            
             double sigma = 1.0 / snr[i];    // 计算当前snr下的噪声功率
-            
-            auto Tx = Transmitter(InputData,ScrambleRule,SpreadSeq); // 发送信号
-            auto Rx = Channel(sigma, Noise, H, Tx);// 接收机信号
-            
 
-            // IDMA译码器循环
-            for (int r = 0; r < IDMAitr; ++r) {
+            auto Tx = Transmitter(InputData, ScrambleRule, SpreadSeq);
+            auto Rx = Channel(sigma, Noise, H, Tx);
+            auto AppLlr = Receiver(sigma, IDMAitr, ScrambleRule, SpreadSeq, H, Rx);
 
-                calESE(avg_RxData, apLLR, avg_FadingCoff, noise_variance, extrLLR);     // 计算ESE
-                deInterleaver(extrLLR, ILidx, deILData);                                  // 解交织
-                despreader(deILData, deSpData);                                          // 解扩频
+            for (int j = 0; j < NUSERS; j++)
+                transform(AppLlr[j].begin(), AppLlr[j].end(), OutputData[i][j].begin(),
+                    [](double x) { return (x >= 0.0) ? 1 : 0; });
 
-                spreader(deSpData, spreaded_data);                                      // 扩频
+        }
 
-                for (size_t user = 0; user < NUSERS; ++user) {
-                    for (size_t i = 0; i < FrameLen; ++i) {
-                        extLLR[user][i] = spreaded_data[user][i] - deILData[user][i];   // 迭代之后做差值
-                    }
+            // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
+            {
+
+                calcError(OutputData, InputData, cnt); // 计算误码率
+                if (cnt % NUM_PRINT == 0) {
+                    PrintToConsole(cnt);    // 满足打印条件时，打印一次结果
                 }
-
-                InterLeaver(extLLR, ILidx, apLLR);                                      // 交织
+                if (cnt == NUM_FRAMES - 1) {
+                    PrintToConsole(cnt);
+                    WriteToFile();          // 所有仿真完成后，把结果写入到文件里面
+                }
+                cnt++;        // 仅在任务完成后递增一次
             }
-
-            hardDecision(deSpData, output_data, i);                                      // 进行硬判决
-        }
-
-
-        // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
-        {
-            // std::lock_guard<std::mutex> lock(data_mutex);
-
-            calcError(output_data, input_data, cnt); // 计算误码率
-            if (cnt % NUM_PRINT == 0) {
-                PrintToConsole(cnt);    // 满足打印条件时，打印一次结果
-            }
-            if (cnt == NUM_FRAMES - 1) {
-                PrintToConsole(cnt);
-                WriteToFile();          // 所有仿真完成后，把结果写入到文件里面
-            }
-            cnt++;        // 仅在任务完成后递增一次
-        }
     }
 
-    return 0; 
+    return 0;
 }
+
 
 
 
