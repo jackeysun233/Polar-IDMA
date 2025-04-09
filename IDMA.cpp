@@ -320,6 +320,115 @@ void ChannelDecoder(const vector<vector<double>>& deSpData,
 }
 
 
+vector<vector<double>> Transmitter(
+const vector<vector<int>>& InputData,
+const vector<vector<int>>& ScrambleRule,
+const vector<int>& SpreadSeq
+)
+{
+    int i, j, nuser;
+    
+    double tmp;
+
+    vector<vector<double>> Chip(NUSERS, vector<double>(FrameLen));
+    vector<vector<double>> Tx(NUSERS, vector<double>(FrameLen));
+
+
+    // Spreading process.
+    for (int j = 0; j < NUSERS; j++) for (int i = 0; i < FrameLen; i++)
+    {    
+        tmp = 1 - (2 * InputData[j][i]);
+        for (int s= 0; s < SF; s++) Chip[j][i] = tmp * SpreadSeq[s];
+    }
+
+    // Interleaving process.
+    for (int j = 0; j < NUSERS; j++) for (int i = 0; i < FrameLen; i++)
+        Tx[nuser][i] = Chip[nuser][ScrambleRule[nuser][i]];
+
+    return Tx;
+}
+
+
+vector<double> Channel(double sigma, 
+    const vector<double>& Noise, 
+    const vector<vector<double>>& H,
+    const vector<vector<double>>& Tx) {
+
+    vector<double> Rx(FrameLen);
+
+    for (int i = 0; i < FrameLen; i++)
+    {
+        // Additive white Gaussian noise.
+        Rx[i] = sigma * Noise[i];
+
+        // Multiple access channel and energy scaling.
+        for (int j = 0; j < NUSERS; j++) Rx[i] += H[j][i] * Tx[j][i];
+    }
+
+}
+
+vector<vector<double>> Receiver(
+    const double sigma,
+    const int IDMAitr,
+    const vector<vector<int>>& ScrambleRule,
+    const vector<vector<double>>& H,
+    const vector<double> Rx
+) {
+
+    // 定义并初始化 TotalMean 和 TotalVar
+    vector<double> TotalMean(FrameLen, 0.0); // 总均值，初始化为 0
+    vector<double> TotalVar(FrameLen, sigma * sigma); // 总方差，初始化为 sigma^2
+
+    // 定义并初始化 Mean 和 Var
+    vector<vector<double>> Mean(NUSERS, vector<double>(FrameLen, 0.0)); // 用户均值，初始化为 0
+    vector<vector<double>> Var(NUSERS, vector<double>(FrameLen, 0.0));  // 用户方差，初始化为 0
 
 
 
+    // 初始化均值方差
+    for (int i = 0; i < FrameLen; i++)
+    {
+        TotalMean[i] = 0;
+        TotalVar[i] = sigma * sigma;
+    }
+    for (int j = 0; j < NUSERS; j++) for (int i = 0; i < FrameLen; i++)
+    {
+        Mean[j][i] = 0;
+        Var[j][i] = H[j][i] * H[j][i];
+        TotalVar[i] += H[j][i] * H[j][i];
+    }
+
+
+    for (int it = 0; it < IDMAitr; it++) for (int j = 0; j < NUSERS; j++)
+    {
+        // Produce the LLR values for the de-interleaved chip sequence.
+        for (int i = 0; i < FrameLen; i++)
+        {
+            TotalMean[i] -= Mean[j][i];
+            TotalVar[i] -= Var[j][i];
+            Chip[j][ScrambleRule[j][i]] = 2 * H[j][i] * (Rx[i] - TotalMean[i]) / TotalVar[i];
+        }
+
+        // De-spreading operation.(TODO)
+        for (int k = 0; k < NBITS; k++)
+        {
+            
+            for (int s = 0; s < SF; s++) appllr[k] += SpreadSeq[s] * chip[m++];
+        }
+
+        // Feed the AppLlr to decoder, if there is a FEC codec in the system.
+
+        // Spreading operation: Produce the extrinsic LLR for each chip
+        for (m = i = 0; i < _DataLen; i++) for (j = 0; j < _SpreadLen; j++, m++)
+            Ext[nuser][m] = SpreadSeq[j] * AppLlr[nuser][i] - Chip[nuser][m];
+
+        // Update the statistic variable together with the interleaving process.
+        for (i = 0; i < _ChipLen; i++)
+        {
+            Mean[nuser][i] = H[nuser] * tanh(Ext[nuser][ScrambleRule[nuser][i]] / 2);
+            Var[nuser][i] = H2[nuser] - Mean[nuser][i] * Mean[nuser][i];
+            TotalMean[i] += Mean[nuser][i];
+            TotalVar[i] += Var[nuser][i];
+        }
+    }
+}

@@ -56,5 +56,19 @@ void ChannelDecoder(const vector<vector<double>>& deSpData,
     vector<vector<vector<int>>>& output_data,
     int i, PolarCode& pc);
 
+vector<vector<double>> Transmitter(
+    const vector<vector<int>>& InputData,
+    const vector<vector<int>>& ScrambleRule,
+    const vector<int>& SpreadSeq
+);
+
+vector<double> Channel(double sigma,
+    const vector<double>& Noise,
+    const vector<vector<double>>& H,
+    const vector<vector<double>>& Tx);
+
+
+
+
 
 #endif // FUNCTIONS_H

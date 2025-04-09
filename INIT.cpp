@@ -18,7 +18,7 @@ void GenSNR() {
 
     // 计算 SNR 的具体取值
     for (int i = 0; i < SNR_NUM; ++i) {
-        SNR_dB[i] = SNR_BEGIN + i * step;                // SNR 的 dB 值
+        SNR_dB[i] = SNR_BEGIN + i * step;         // SNR 的 dB 值
         snr[i] = pow(10, SNR_dB[i] / 10.0);       // 转换为线性单位
     }
 }
