@@ -17,5 +17,7 @@ void OpenDataFile();
 void PrintHeader();
 void PrintToConsole(int sim);
 void WriteToFile();
+void load_file(const char* filename,
+    vector<vector<int>>& ScrambleRule);
 
 #endif // INIT_H

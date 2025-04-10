@@ -10,16 +10,10 @@ using namespace std;
 
 // 计算SNR的值
 void GenSNR() {
-    // 计算 SNR 的步长
-    double step = (SNR_NUM > 1) ? (SNR_END - SNR_BEGIN) / (SNR_NUM - 1) : 0.0;
-
-    //// 初始化 SNR 值向量
-    //vector<double> snr(SNR_NUM, 0.0);
-
-    // 计算 SNR 的具体取值
-    for (int i = 0; i < SNR_NUM; ++i) {
-        SNR_dB[i] = SNR_BEGIN + i * step;         // SNR 的 dB 值
-        snr[i] = pow(10, SNR_dB[i] / 10.0);       // 转换为线性单位
+    for (int i = 0; i < EbNoNUM; i++) {
+        ebno_dB[i] = EbNoSTART + i * EbNoSTEP;
+        snr[i] = 2 * pow(10, ebno_dB[i] / 10) / (FrameLen / NBITS);
+        snr_dB[i] = 10 * log10(snr[i]);
     }
 }
 
@@ -190,14 +184,22 @@ void PrintToConsole(int sim) {
 
     // 打印 SNR 表头
     cout << left << setw(10) << "SNR";
-    for (int i = 0; i < SNR_NUM; ++i) {
-        cout << setw(12) << fixed << setprecision(2) << SNR_dB[i];
+    for (int i = 0; i < EbNoNUM; ++i) {
+        cout << setw(12) << fixed << setprecision(2) << snr_dB[i];
     }
-    cout << "\n" << string(10 + SNR_NUM * 12, '-') << "\n";
+    cout << "\n";
+    // —— 新增 EbN0 行 ——
+    cout << left << setw(10) << "EbN0";
+    for (int i = 0; i < EbNoNUM; ++i) {
+        cout << setw(12) << fixed << setprecision(2) << ebno_dB[i];
+    }
+    cout << "\n";
+
+    cout << "\n" << string(10 + EbNoNUM * 12, '-') << "\n";
 
     // 打印 BER 数据行
     cout << left << setw(10) << "BER";
-    for (int i = 0; i < SNR_NUM; ++i) {
+    for (int i = 0; i < EbNoNUM; ++i) {
         double avg_BER = 0.0;
         for (int j = 0; j < BER[i].size(); ++j) {
             avg_BER += BER[i][j];
@@ -209,7 +211,7 @@ void PrintToConsole(int sim) {
 
     // 打印 PUPE 数据行
     cout << left << setw(10) << "PUPE";
-    for (int i = 0; i < SNR_NUM; ++i) {
+    for (int i = 0; i < EbNoNUM; ++i) {
         double avg_PUPE = 0.0;
         for (int j = 0; j < PUPE[i].size(); ++j) {
             avg_PUPE += PUPE[i][j];
@@ -221,7 +223,7 @@ void PrintToConsole(int sim) {
 
     // 打印累计错误比特数量
     cout << left << setw(10) << "ErrorBits";
-    for (int i = 0; i < SNR_NUM; ++i) {
+    for (int i = 0; i < EbNoNUM; ++i) {
         int total_errors = 0;
         for (int j = 0; j <= sim; ++j) { // 计算累计错误的比特数量
             total_errors += static_cast<int>(BER[i][j] * NUSERS * NBITS); // 将误码率转换为错误比特数量
@@ -231,7 +233,7 @@ void PrintToConsole(int sim) {
     cout << "\n";
 
     // 打印分隔线
-    cout << string(10 + SNR_NUM * 12, '=') << "\n\n";
+    cout << string(10 + EbNoNUM * 12, '=') << "\n\n";
 }
 
 // 向数据存储文件写入数据
@@ -249,20 +251,27 @@ void WriteToFile() {
     outfile << left << setw(15) << "用户数量:" << NUSERS << "\n"
         << left << setw(15) << "用户信息长度:" << NBITS << "\n"
         << left << setw(15) << "接收天线数量:" << Nr << "\n"
-        << left << setw(15) << "功率分配:" << SF << "\n"
+        << left << setw(15) << "扩频（功率分配）:" << SF << "\n"
         << left << setw(15) << "编码:" << "K = " << NBITS << ", N = " << N << "\n"
         << left << setw(15) << "衰落块长度:" << BlockLen << "\n\n";
 
     // 写入 SNR 表头
     outfile << left << setw(10) << "SNR";
-    for (int i = 0; i < SNR_NUM; ++i) {
-        outfile << setw(12) << fixed << setprecision(2) << SNR_dB[i];
+    for (int i = 0; i < EbNoNUM; ++i) {
+        outfile << setw(12) << fixed << setprecision(2) << snr_dB[i];
     }
-    outfile << "\n" << string(10 + SNR_NUM * 12, '-') << "\n";
+    outfile << "\n";
+    // —— 新增 EbN0 行 ——
+    outfile << left << setw(10) << "EbN0";
+    for (int i = 0; i < EbNoNUM; ++i) {
+        outfile << setw(12) << fixed << setprecision(2) << ebno_dB[i];
+    }
+    outfile << "\n";
+    outfile << "\n" << string(10 + EbNoNUM * 12, '-') << "\n";
 
     // 写入 BER 数据行
     outfile << left << setw(10) << "BER";
-    for (int i = 0; i < SNR_NUM; ++i) {
+    for (int i = 0; i < EbNoNUM; ++i) {
         double avg_BER = 0.0;
         for (int j = 0; j < BER[i].size(); ++j) {
             avg_BER += BER[i][j];
@@ -274,7 +283,7 @@ void WriteToFile() {
 
     // 写入 PUPE 数据行
     outfile << left << setw(10) << "PUPE";
-    for (int i = 0; i < SNR_NUM; ++i) {
+    for (int i = 0; i < EbNoNUM; ++i) {
         double avg_PUPE = 0.0;
         for (int j = 0; j < PUPE[i].size(); ++j) {
             avg_PUPE += PUPE[i][j];
@@ -286,7 +295,7 @@ void WriteToFile() {
 
     // 写入累计错误比特数量
     outfile << left << setw(10) << "ErrorBits";
-    for (int i = 0; i < SNR_NUM; ++i) {
+    for (int i = 0; i < EbNoNUM; ++i) {
         int total_errors = 0;
         for (int j = 0; j < BER[i].size(); ++j) { // 累计错误比特数量
             total_errors += static_cast<int>(BER[i][j] * NUSERS * NBITS);
@@ -296,7 +305,30 @@ void WriteToFile() {
     outfile << "\n";
 
     // 写入分隔线
-    outfile << string(10 + SNR_NUM * 12, '=') << "\n\n";
+    outfile << string(10 + EbNoNUM * 12, '=') << "\n\n";
 
     outfile.close(); // 关闭文件
+}
+
+
+// 函数定义：加载 interleaver 矩阵
+void load_file(const char* filename,
+    vector<vector<int>>& ScrambleRule) {
+    // 打开文件（使用安全模式）
+    FILE* file;
+    errno_t err = fopen_s(&file, filename, "r");
+    if (err != 0 || file == NULL) {
+        printf("无法打开文件: %s\n", filename);
+        exit(1);  // 如果文件打开失败，退出程序
+    }
+
+    // 读取文件内容到 ScrambleRule 矩阵（使用安全模式）
+    for (int i = 0; i < NUSERS; i++) {
+        for (int j = 0; j < FrameLen; j++) {
+            fscanf_s(file, "%d", &ScrambleRule[i][j]);
+        }
+    }
+
+    // 关闭文件
+    fclose(file);
 }

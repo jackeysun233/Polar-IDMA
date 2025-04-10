@@ -250,7 +250,7 @@ void calcError(const vector<vector<vector<int>>>& output_data,
     int sim) {
     int total_bits = NUSERS * NBITS;  // 总比特数量
 
-    for (int snr = 0; snr < SNR_NUM; ++snr) {
+    for (int snr = 0; snr < EbNoNUM; ++snr) {
         int bit_errors = 0;  // 当前 SNR 的比特错误数量
         int block_errors = 0; // 当前 SNR 的块错误数量
 
