@@ -333,7 +333,7 @@ const vector<int>& SpreadSeq
 
 
     // Spreading process.
-    for (int j = 0; j < NUSERS; j++) for (int k = 0; k < NBITS; k++)
+    for (int j = 0; j < NUSERS; j++) for (int k = 0; k < N; k++)
     {    
         double tmp = 1 - (2 * InputData[j][k]);
         for (int s= 0; s < SF; s++) Chip[j][k*SF+s] = tmp * SpreadSeq[s];
@@ -385,7 +385,7 @@ vector<vector<double>> Receiver(
     
     // 定义过程变量
     vector<vector<double>> Chip(NUSERS, vector<double>(FrameLen, 0.0));
-    vector<vector<double>> AppLlr(NUSERS, vector<double>(NBITS, 0.0));
+    vector<vector<double>> AppLlr(NUSERS, vector<double>(N, 0.0));
     vector<vector<double>> Ext(NUSERS, vector<double>(FrameLen, 0.0));
 
 
@@ -415,11 +415,11 @@ vector<vector<double>> Receiver(
         }
 
         // 进行清零操作
-        for (int k = 0; k < NBITS; k++)
+        for (int k = 0; k < N; k++)
             AppLlr[j][k] = 0.0;
 
         // De-spreading operation.
-        for (int k = 0; k < NBITS; k++) for (int s = 0; s < SF; s++)
+        for (int k = 0; k < N; k++) for (int s = 0; s < SF; s++)
         {
              AppLlr[j][k] += SpreadSeq[s] * Chip[j][k * SF + s];
         }
@@ -427,7 +427,7 @@ vector<vector<double>> Receiver(
         // Feed the AppLlr to decoder, if there is a FEC codec in the system.
 
         // Spreading operation: Produce the extrinsic LLR for each chip
-        for (int k = 0; k < NBITS; k++) for (int s = 0; s < SF; s++)
+        for (int k = 0; k < N; k++) for (int s = 0; s < SF; s++)
             Ext[j][k * SF + s] = SpreadSeq[s] * AppLlr[j][k] - Chip[j][k * SF + s];
 
         // Update the statistic variable together with the interleaving process.
