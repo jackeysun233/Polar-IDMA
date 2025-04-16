@@ -9,19 +9,19 @@ using namespace std;
 
 // 声明全局变量
 const int NUSERS = 1;                       // 活跃用户数量
-const int NBITS = 100;                      // 每个用户发送的比特数量
-const int SF = 4;                           // 扩频的倍数
-const int N = 128;                          // 编码后的码字长度(请根据CodeMode修改,32)(可能会有问题吗？？)
+const int NBITS = 16;                      // 每个用户发送的比特数量
+const int SF = 150;                           // 扩频的倍数
+const int N = 32;                          // 编码后的码字长度(请根据CodeMode修改,32)(可能会有问题吗？？)
 const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 const int L = 1024;                           // Polar Code 的 list size
 
-const double SNR_BEGIN = -3;
-const double SNR_END = 2;
-const int SNR_NUM = 6;
+const double SNR_BEGIN = -11.76;
+const double SNR_END = -11.76;
+const int SNR_NUM = 1;
 
-const int NUM_FRAMES = 200000;               // 帧数量
-const int NUM_PRINT = 1000;                  // 打印显示间隔
+const int NUM_FRAMES = 50000;               // 帧数量
+const int NUM_PRINT = 10;                  // 打印显示间隔
 
 const bool IsFading = false;                 // 控制衰落模式
 const string CodeMode = "Polar";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
