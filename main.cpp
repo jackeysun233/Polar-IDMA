@@ -10,25 +10,27 @@
 using namespace std;
 
 // 声明全局变量
-const int NUSERS = 6;                       // 活跃用户数量
-const int NBITS = 333;                      // 每个用户发送的比特数量
-const int SF = 6;                           // 扩频的倍数
-const int N = 333;                          // 编码后的码字长度(请根据CodeMode修改,32)
+const int NUSERS = 1;                       // 活跃用户数量
+const int NBITS = 10;                       // 每个用户发送的比特数量
+const int SF = 83;                         // 扩频的倍数
+const int N = 10;                           // 编码后的码字长度(请根据CodeMode修改,32)
 const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 const int L = 32;                           // Polar Code 的 list size
 
 const double EbNoSTART = 5;
-const double EbNoSTEP = 1;
+const double EbNoSTEP = 4;
 const int EbNoNUM = 6;
 
 const int NUM_FRAMES = 50000;               // 帧数量
-const int NUM_PRINT = 100;                  // 打印显示间隔
+const int NUM_PRINT = 100;                   // 打印显示间隔
 
-const bool IsFading = false;                 // 控制衰落模式
+const bool IsFading = true;                 // 控制衰落模式
 const string CodeMode = "None";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
-const int BlockLen = 500;                    // 块衰落的长度
-const int IDMAitr = 25;                      // IDMA迭代次数
+const int IDMAitr = 25;                     // IDMA迭代次数
+
+const int BlockLen = 500;                               // 块衰落的长度
+const int BlockNum = round(FrameLen / BlockLen);        // 衰落块的数量
 
 
 string filename;                            // 数据保存的文件名
@@ -169,6 +171,8 @@ void PureIDMA(
     random_device rd;                   // 用于种子
     mt19937 generator(rd());            // Mersenne Twister 引擎
     normal_distribution<double> distribution(0.0, 1.0);  // 均值为0，标准差为1的正态分布
+    normal_distribution<double> rayleigh(0.0, 1.0/sqrt(2.0));  // 均值为0，标准差为1的正态分布
+
 
 
     // 生成噪声
@@ -188,6 +192,25 @@ void PureIDMA(
     // 计算不同SNR下的误码率
     for (int q = 0; q < EbNoNUM; ++q) {
         double sigma = sqrt(1.0 / snr[q]);    // 计算当前snr下的噪声功率
+
+        // 生成信道衰落系数
+        if (IsFading) {
+            for (int j = 0; j < NUSERS; j++) {
+                for (int kk = 0; kk < BlockNum; kk++) {
+                    auto U1 = rayleigh(generator);
+                    auto U2 = rayleigh(generator);
+                    for (int ii = 0; ii < BlockLen; ii++)
+                        H[j][BlockLen * kk + ii] = sqrt(U1 * U1 + U2 * U2);
+                }
+                if (BlockLen * BlockNum < FrameLen) {
+                    int RemainLen = FrameLen - BlockLen * BlockNum;
+                    auto U1 = rayleigh(generator);
+                    auto U2 = rayleigh(generator);
+                    for (int ii = 0; ii < RemainLen; ii++)
+                        H[j][BlockLen * BlockNum + ii] = sqrt(U1 * U1 + U2 * U2);
+                }
+            }
+        }
 
         auto Tx = Transmitter(InputData, ScrambleRule, SpreadSeq);
         auto Rx = Channel(sigma, Noise, H, Tx);
@@ -217,7 +240,7 @@ void PureIDMA(
 
 
 int main() {
-    ThreadPool pool(8);     // 使用的线程数量
+    ThreadPool pool(6);     // 使用的线程数量
 
     OpenDataFile();         // 打开数据存储文件
     GenSNR();               // 生成待仿真的SNR向量
