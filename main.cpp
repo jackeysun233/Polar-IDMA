@@ -7,27 +7,29 @@
 #include <string>
 #include <bits/stdc++.h>
 #include <random>
+#include <chrono>
 using namespace std;
+using namespace std::chrono;
 
 // 声明全局变量
 const int NUSERS = 1;                       // 活跃用户数量
 const int NBITS = 10;                       // 每个用户发送的比特数量
-const int SF = 83;                         // 扩频的倍数
+const int SF = 833;                         // 扩频的倍数
 const int N = 10;                           // 编码后的码字长度(请根据CodeMode修改,32)
 const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 const int L = 32;                           // Polar Code 的 list size
 
-const double EbNoSTART = 5;
-const double EbNoSTEP = 4;
-const int EbNoNUM = 6;
+const double EbNoSTART = 1;
+const double EbNoSTEP = 1;
+const int EbNoNUM = 5;
 
-const int NUM_FRAMES = 50000;               // 帧数量
+const int NUM_FRAMES = 5000;               // 帧数量
 const int NUM_PRINT = 100;                   // 打印显示间隔
 
 const bool IsFading = true;                 // 控制衰落模式
 const string CodeMode = "None";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
-const int IDMAitr = 25;                     // IDMA迭代次数
+const int IDMAitr = 10;                     // IDMA迭代次数
 
 const int BlockLen = 500;                               // 块衰落的长度
 const int BlockNum = round(FrameLen / BlockLen);        // 衰落块的数量
@@ -156,8 +158,9 @@ void PureIDMA(
     vector<vector<int>> InputData(NUSERS, vector<int>(NBITS, 0));
     vector<vector<int>> EncodedData(NUSERS, vector<int>(N, 0));
 
-    vector<vector<vector<int>>> OutputData(EbNoNUM, vector<vector<int>>(NUSERS, vector<int>(NBITS, 0)));
-
+    vector<vector<int>> OutputData(NUSERS, vector<int>(NBITS, 0));
+    vector<double> BER(EbNoNUM, 0.0);
+    vector<double> PUPE(EbNoNUM, 0.0);
 
     vector<double> Noise(FrameLen, 0.0);
     vector<vector<double>> H(NUSERS, vector<double>(FrameLen, 1.0));
@@ -173,8 +176,6 @@ void PureIDMA(
     normal_distribution<double> distribution(0.0, 1.0);  // 均值为0，标准差为1的正态分布
     normal_distribution<double> rayleigh(0.0, 1.0/sqrt(2.0));  // 均值为0，标准差为1的正态分布
 
-
-
     // 生成噪声
     for (int i = 0; i < FrameLen; ++i) {
         Noise[i] = distribution(generator);
@@ -189,7 +190,6 @@ void PureIDMA(
         }
     }
 
-    // 计算不同SNR下的误码率
     for (int q = 0; q < EbNoNUM; ++q) {
         double sigma = sqrt(1.0 / snr[q]);    // 计算当前snr下的噪声功率
 
@@ -216,25 +216,41 @@ void PureIDMA(
         auto Rx = Channel(sigma, Noise, H, Tx);
         auto AppLlr = Receiver(sigma, IDMAitr, ScrambleRule, SpreadSeq, H, Rx);
 
-        for (int j = 0; j < NUSERS; j++)
-            transform(AppLlr[j].begin(), AppLlr[j].end(), OutputData[q][j].begin(),
-                [](double x) { return (x >= 0.0) ? 0 : 1; });
+        for (int j = 0; j < NUSERS; j++) 
+            transform(AppLlr[j].begin(), AppLlr[j].end(), OutputData[j].begin(),
+                [](double x) { return (x >= 0.0) ? 0 : 1; });  
 
+        int errnum = 0;
+        double ber = 0.0;
+        vector<int> errusr(NUSERS, 0);
+
+        for (int j = 0; j < NUSERS; j++) for (int k = 0; k < NBITS; k++) {
+            if (InputData[j][k] != OutputData[j][k]) {
+                errnum++;
+                errusr[j] = 1;
+            }
+        }
+
+        ber = errnum / (NUSERS * NBITS);
+        double pupe = accumulate(errusr.begin(), errusr.end(), 0) / NUSERS;
+
+        BER[q] = ber;
+        PUPE[q] = pupe;
     }
 
-    // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
-    {
-        std::lock_guard<std::mutex> lock(data_mutex);
-        calcError(OutputData, InputData, cnt); // 计算误码率
-        if (cnt % NUM_PRINT == 0) {
-            PrintToConsole(cnt);    // 满足打印条件时，打印一次结果
-        }
-        if (cnt == NUM_FRAMES - 1) {
-            PrintToConsole(cnt);
-            WriteToFile();          // 所有仿真完成后，把结果写入到文件里面
-        }
-        cnt++;        // 仅在任务完成后递增一次
-    }
+    //// 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
+    //{
+    //    std::lock_guard<std::mutex> lock(data_mutex);
+    //    calcError(OutputData, InputData, cnt); // 计算误码率
+    //    if (cnt % NUM_PRINT == 0) {
+    //        PrintToConsole(cnt);    // 满足打印条件时，打印一次结果
+    //    }
+    //    if (cnt == NUM_FRAMES - 1) {
+    //        PrintToConsole(cnt);
+    //        WriteToFile();          // 所有仿真完成后，把结果写入到文件里面
+    //    }
+    //    cnt++;        // 仅在任务完成后递增一次
+    //}
 }
 
 
