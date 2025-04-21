@@ -47,108 +47,121 @@ mutex data_mutex;                           // 全局变量，用于文件写入的互斥锁
 
 atomic<int> cnt(0);                         // 声明全局变量，存储仿真的次数
 
-//// 每个线程执行的蒙特卡洛仿真函数
-//void PolarCodeIDMA(
-//    const vector<int>& SpreadSeq,
-//    const vector<vector<int>> ScrambleRule
-//) {
-//
-//    vector<vector<int>> InputData(NUSERS, vector<int>(NBITS, 0));
-//    vector<vector<int>> EncodedData(NUSERS, vector<int>(N, 0));
-//
-//    vector<vector<vector<int>>> OutputData(EbNoNUM, vector<vector<int>>(NUSERS, vector<int>(NBITS, 0)));
-//
-//
-//    vector<double> Noise(FrameLen, 0.0);
-//    vector<vector<double>> H(NUSERS, vector<double>(FrameLen, 1.0));
-//
-//    // 生成输入信号种子
-//
-//    mt19937 rng(random_device{}());
-//    uniform_int_distribution<int> bit_dist(0, 1);
-//
-//    // 生成噪声种子
-//    random_device rd;                   // 用于种子
-//    mt19937 generator(rd());            // Mersenne Twister 引擎
-//    normal_distribution<double> distribution(0.0, 1.0);  // 均值为0，标准差为1的正态分布
-//
-//
-//    // 生成噪声
-//    for (int i = 0; i < FrameLen; ++i) {
-//        Noise[i] = distribution(generator);
-//    }
-//
-//    // 生成输入信号
-//    for (int i = 0; i < NBITS; ++i)
-//    {
-//        for (int j = 0; j < NUSERS; ++j)
-//        {
-//            // InputData[j][i] = bit_dist(rng);
-//            InputData[j][i] = 0;
-//        }
-//    }
-//
-//    // 信道编码
-//    // 初始化polar编码器、译码器
-//    int k = static_cast<int>(log2(N));
-//    PolarCode pc(k, NBITS, 0, 4, true, false, false, false);
-//
-//    for (int j = 0; j < NUSERS; ++j) {
-//        // 将输入数据转换为 uint8_t 类型
-//        vector<uint8_t> tmp(InputData[j].size());
-//        transform(InputData[j].begin(), InputData[j].end(), tmp.begin(), [](int x) {
-//            return static_cast<uint8_t>(x);
-//            });
-//
-//        // 获取编码后的数据
-//        vector<uint8_t> encoded = pc.encode(tmp);
-//
-//        // 将编码后的数据转换为 int 类型并存储到 encoded_data 中
-//        for (size_t i = 0; i < encoded.size(); ++i) {
-//            EncodedData[j][i] = static_cast<int>(encoded[i]);  // 转换为 int 并存储
-//        }
-//    }
-//    
-//    // 计算不同SNR下的误码率
-//    for (int q = 0; q < EbNoNUM; ++q) {
-//        double sigma = sqrt(1.0 / snr[q]);    // 计算当前snr下的噪声功率
-//
-//        auto Tx = Transmitter(EncodedData, ScrambleRule, SpreadSeq);
-//        auto Rx = Channel(sigma, Noise, H, Tx);
-//        auto AppLlr = Receiver(sigma, IDMAitr, ScrambleRule, SpreadSeq, H, Rx);
-//
-//        // 信道编码译码
-//
-//        for (size_t user = 0; user < NUSERS; ++user) {
-//            // 调用PolarCode的SCL译码器
-//            auto decoded = pc.decode_scl_llr(AppLlr[user], L); // 假设list_size为8
-//
-//            transform(decoded.begin(), decoded.end(), OutputData[q][user].begin(), 
-//                [](auto x) {return static_cast<int>(x); });
-//
-//            //for (size_t bit = 0; bit < NBITS; ++bit) {
-//            //    // 将译码结果转换为int并存入output_data
-//            //    OutputData[q][user][bit] = static_cast<int>(decoded[bit]);
-//            //}
-//        }
-//    }
-//
-//    // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
-//    {
-//        std::lock_guard<std::mutex> lock(data_mutex);
-//        calcError(OutputData, InputData, cnt); // 计算误码率
-//        if (cnt % NUM_PRINT == 0) {
-//            PrintToConsole(cnt);    // 满足打印条件时，打印一次结果
-//        }
-//        if (cnt == NUM_FRAMES - 1) {
-//            PrintToConsole(cnt);
-//            WriteToFile();          // 所有仿真完成后，把结果写入到文件里面
-//        }
-//        cnt++;        // 仅在任务完成后递增一次
-//    }
-//
-//
-//}
+// 每个线程执行的蒙特卡洛仿真函数
+void PolarCodeIDMA(
+    const vector<int>& SpreadSeq,
+    const vector<vector<int>> ScrambleRule
+) {
+
+    vector<vector<int>> InputData(NUSERS, vector<int>(NBITS, 0));
+    vector<vector<int>> EncodedData(NUSERS, vector<int>(N, 0));
+
+    vector<vector<int>> OutputData(NUSERS, vector<int>(NBITS, 0));
+    vector<double> BER(EbNoNUM, 0.0);
+    vector<double> PUPE(EbNoNUM, 0.0);
+
+    vector<double> Noise(FrameLen, 0.0);
+    vector<vector<double>> H(NUSERS, vector<double>(FrameLen, 1.0));
+
+    // 生成输入信号种子
+
+    mt19937 rng(random_device{}());
+    uniform_int_distribution<int> bit_dist(0, 1);
+
+    // 生成噪声种子
+    random_device rd;                   // 用于种子
+    mt19937 generator(rd());            // Mersenne Twister 引擎
+    normal_distribution<double> distribution(0.0, 1.0);  // 均值为0，标准差为1的正态分布
+
+
+    // 生成噪声
+    for (int i = 0; i < FrameLen; ++i) {
+        Noise[i] = distribution(generator);
+    }
+
+    // 生成输入信号
+    for (int i = 0; i < NBITS; ++i)
+    {
+        for (int j = 0; j < NUSERS; ++j)
+        {
+            // InputData[j][i] = bit_dist(rng);
+            InputData[j][i] = 0;
+        }
+    }
+
+    // 信道编码
+    // 初始化polar编码器、译码器
+    int k = static_cast<int>(log2(N));
+    PolarCode pc(k, NBITS, 0, 4, true, false, false, false);
+
+    for (int j = 0; j < NUSERS; ++j) {
+        // 将输入数据转换为 uint8_t 类型
+        vector<uint8_t> tmp(InputData[j].size());
+        transform(InputData[j].begin(), InputData[j].end(), tmp.begin(), [](int x) {
+            return static_cast<uint8_t>(x);
+            });
+
+        // 获取编码后的数据
+        vector<uint8_t> encoded = pc.encode(tmp);
+
+        // 将编码后的数据转换为 int 类型并存储到 encoded_data 中
+        for (size_t i = 0; i < encoded.size(); ++i) {
+            EncodedData[j][i] = static_cast<int>(encoded[i]);  // 转换为 int 并存储
+        }
+    }
+    
+    // 计算不同SNR下的误码率
+    for (int q = 0; q < EbNoNUM; ++q) {
+        double sigma = sqrt(1.0 / snr[q]);    // 计算当前snr下的噪声功率
+
+        auto Tx = Transmitter(EncodedData, ScrambleRule, SpreadSeq);
+        auto Rx = Channel(sigma, Noise, H, Tx);
+        auto AppLlr = Receiver(sigma, IDMAitr, ScrambleRule, SpreadSeq, H, Rx);
+
+        // 信道编码译码
+        for (size_t user = 0; user < NUSERS; ++user) {
+            // 调用PolarCode的SCL译码器
+            auto decoded = pc.decode_scl_llr(AppLlr[user], L); // 假设list_size为8
+
+            transform(decoded.begin(), decoded.end(), OutputData[user].begin(), 
+                [](auto x) {return static_cast<int>(x); });
+        }
+
+        int errnum = 0;
+        double ber = 0.0;
+        vector<int> errusr(NUSERS, 0);
+        for (int j = 0; j < NUSERS; j++) for (int k = 0; k < NBITS; k++) {
+            if (InputData[j][k] != OutputData[j][k]) {
+                errnum++;
+                errusr[j] = 1;
+            }
+        }
+
+        ber = static_cast<double>(errnum) / (NUSERS * NBITS);
+        double pupe = accumulate(errusr.begin(), errusr.end(), 0) / static_cast<double>(NUSERS);
+
+        BER[q] = ber;
+        PUPE[q] = pupe;
+
+    }
+
+    // 文件锁作用域，计算误码率和打印误码率功能只能有一个线程在执行
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+
+        for (int q = 0; q < EbNoNUM; q++) {
+            total_BER[q] = (BER[q] + total_BER[q] * cnt) / static_cast<double>(cnt + 1);
+            total_PUPE[q] = (PUPE[q] + total_PUPE[q] * cnt) / static_cast<double>(cnt + 1);
+        }
+
+        if (cnt % NUM_PRINT == 0) {
+            PrintToConsole();
+        }
+        cnt++;
+    }
+
+
+}
 
 void PureIDMA(
     const vector<int>& SpreadSeq,
@@ -286,25 +299,21 @@ int main() {
         }
     }
 
-    for (int sim = 0; sim < NUM_FRAMES; ++sim) {
-        pool.enqueue(PureIDMA, SpreadSeq, ScrambleRule); // 将任务放到线程池里面
+    if (CodeMode == "None") {
+        // 多线程并行
+        for (int sim = 0; sim < NUM_FRAMES; ++sim) {
+            pool.enqueue(PureIDMA,SpreadSeq,ScrambleRule); // 将任务放到线程池里面
+        }
     }
-
-    //if (CodeMode == "None") {
-    //    // 多线程并行
-    //    for (int sim = 0; sim < NUM_FRAMES; ++sim) {
-    //        pool.enqueue(PureIDMA,SpreadSeq,ScrambleRule); // 将任务放到线程池里面
-    //    }
-    //}
-    //else if (CodeMode == "Polar") {  // 修正了这里的括号
-    //    // 多线程并行
-    //    for (int sim = 0; sim < NUM_FRAMES; ++sim) {
-    //        pool.enqueue(PolarCodeIDMA, SpreadSeq, ScrambleRule); // 将任务放到线程池里面
-    //    }
-    //}
-    //else {
-    //    std::cout << "请输入正确的编码方式字段" << std::endl;
-    //}
+    else if (CodeMode == "Polar") {  // 修正了这里的括号
+        // 多线程并行
+        for (int sim = 0; sim < NUM_FRAMES; ++sim) {
+            pool.enqueue(PolarCodeIDMA, SpreadSeq, ScrambleRule); // 将任务放到线程池里面
+        }
+    }
+    else {
+        std::cout << "请输入正确的编码方式字段" << std::endl;
+    }
 
     return 0;
 }
