@@ -245,44 +245,44 @@ void hardDecision(const vector<vector<double>>& deSpData,
 }
 
 
-void calcError(const vector<vector<vector<int>>>& output_data,
-    const vector<vector<int>>& input_data,
-    int sim) {
-    int total_bits = NUSERS * NBITS;  // 总比特数量
-
-    for (int snr = 0; snr < EbNoNUM; ++snr) {
-        int bit_errors = 0;  // 当前 SNR 的比特错误数量
-        int block_errors = 0; // 当前 SNR 的块错误数量
-
-        // 对每个用户进行误差计算
-        for (int user = 0; user < NUSERS; ++user) {
-            int user_bit_errors = 0; // 当前用户的比特错误数量
-
-            // 获取 output_data 中的判决数据和 input_data 中的真实数据
-            const vector<int>& estimated_codeword = output_data[snr][user];
-            const vector<int>& true_codeword = input_data[user];
-
-            // 逐位比较 estimated_codeword 和 true_codeword
-            for (int bit = 0; bit < NBITS; ++bit) {
-                if (estimated_codeword[bit] != true_codeword[bit]) {
-                    user_bit_errors++; // 记录比特错误
-                }
-            }
-
-            // 如果存在比特错误，则计入块错误数量
-            if (user_bit_errors > 0) {
-                block_errors++;
-            }
-
-            // 累加比特错误数量
-            bit_errors += user_bit_errors;
-        }
-
-        // 计算并更新 BER 和 PUPE
-        BER[snr][sim] = static_cast<double>(bit_errors) / total_bits;
-        PUPE[snr][sim] = static_cast<double>(block_errors) / NUSERS;
-    }
-}
+//void calcError(const vector<vector<vector<int>>>& output_data,
+//    const vector<vector<int>>& input_data,
+//    int sim) {
+//    int total_bits = NUSERS * NBITS;  // 总比特数量
+//
+//    for (int snr = 0; snr < EbNoNUM; ++snr) {
+//        int bit_errors = 0;  // 当前 SNR 的比特错误数量
+//        int block_errors = 0; // 当前 SNR 的块错误数量
+//
+//        // 对每个用户进行误差计算
+//        for (int user = 0; user < NUSERS; ++user) {
+//            int user_bit_errors = 0; // 当前用户的比特错误数量
+//
+//            // 获取 output_data 中的判决数据和 input_data 中的真实数据
+//            const vector<int>& estimated_codeword = output_data[snr][user];
+//            const vector<int>& true_codeword = input_data[user];
+//
+//            // 逐位比较 estimated_codeword 和 true_codeword
+//            for (int bit = 0; bit < NBITS; ++bit) {
+//                if (estimated_codeword[bit] != true_codeword[bit]) {
+//                    user_bit_errors++; // 记录比特错误
+//                }
+//            }
+//
+//            // 如果存在比特错误，则计入块错误数量
+//            if (user_bit_errors > 0) {
+//                block_errors++;
+//            }
+//
+//            // 累加比特错误数量
+//            bit_errors += user_bit_errors;
+//        }
+//
+//        // 计算并更新 BER 和 PUPE
+//        BER[snr][sim] = static_cast<double>(bit_errors) / total_bits;
+//        PUPE[snr][sim] = static_cast<double>(block_errors) / NUSERS;
+//    }
+//}
 
 
 // 调用PolarCode类进行信道编码

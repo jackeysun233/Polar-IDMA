@@ -171,16 +171,13 @@ void PrintHeader() {
 }
 
 // 打印数据到控制台（动态刷新）
-void PrintToConsole(int sim) {
-    // ANSI 转义序列，用于移动光标到控制台顶部
-    // 假设控制台已经有固定的行数用于显示结果
-    // 这里假设需要刷新大约 10 行，可以根据实际情况调整
-    // ANSI 转义序列：移动光标到表头下方
+void PrintToConsole() {
+
     const int header_lines = 9; // 表头占用的行数，包括 SNR 横向表头和分隔线
     cout << "\033[" << header_lines + 1 << "H"; // 移动光标到表头下方
 
     // 打印仿真次数和数据
-    cout << "当前仿真次数: " << (sim + 1) << "\n";
+    cout << "当前仿真次数: " << (cnt + 1) << "\n";
 
     // 打印 SNR 表头
     cout << left << setw(10) << "SNR";
@@ -200,115 +197,106 @@ void PrintToConsole(int sim) {
     // 打印 BER 数据行
     cout << left << setw(10) << "BER";
     for (int i = 0; i < EbNoNUM; ++i) {
-        double avg_BER = 0.0;
-        for (int j = 0; j < BER[i].size(); ++j) {
-            avg_BER += BER[i][j];
-        }
-        avg_BER /= (sim + 1); // 计算平均 BER
-        cout << setw(12) << scientific << setprecision(2) << avg_BER;
+        cout << setw(12) << scientific << setprecision(2) << total_BER[i];
     }
     cout << "\n";
 
     // 打印 PUPE 数据行
     cout << left << setw(10) << "PUPE";
     for (int i = 0; i < EbNoNUM; ++i) {
-        double avg_PUPE = 0.0;
-        for (int j = 0; j < PUPE[i].size(); ++j) {
-            avg_PUPE += PUPE[i][j];
-        }
-        avg_PUPE /= (sim + 1); // 计算平均 PUPE
-        cout << setw(12) << scientific << setprecision(2) << avg_PUPE;
+        cout << setw(12) << scientific << setprecision(2) << total_PUPE[i];
     }
     cout << "\n";
 
     // 打印累计错误比特数量
-    cout << left << setw(10) << "ErrorBits";
+    cout << left << setw(10) << "ErrBits";
     for (int i = 0; i < EbNoNUM; ++i) {
-        int total_errors = 0;
-        for (int j = 0; j <= sim; ++j) { // 计算累计错误的比特数量
-            total_errors += static_cast<int>(BER[i][j] * NUSERS * NBITS); // 将误码率转换为错误比特数量
-        }
-        cout << setw(12) << total_errors;
+        cout << setw(12) << static_cast<int>(total_BER[i] * NUSERS * NBITS * cnt);
+    }
+    cout << "\n";
+    cout << left << setw(10) << "ErrUsers";
+    for (int i = 0; i < EbNoNUM; ++i) {
+        cout << setw(12) << static_cast<int>(total_PUPE[i] * NUSERS * cnt);
     }
     cout << "\n";
 
     // 打印分隔线
     cout << string(10 + EbNoNUM * 12, '=') << "\n\n";
 }
-
-// 向数据存储文件写入数据
-void WriteToFile() {
-    // 打开文件
-    ofstream outfile(filename, ios::app);
-    if (!outfile.is_open()) {
-        cerr << "无法打开文件: " << filename << endl;
-        return;
-    }
-
-    // 写入仿真头信息
-    outfile << "仿真结束时间: " << GetCurrentTimeString() << "\n";
-
-    outfile << left << setw(15) << "用户数量:" << NUSERS << "\n"
-        << left << setw(15) << "用户信息长度:" << NBITS << "\n"
-        << left << setw(15) << "接收天线数量:" << Nr << "\n"
-        << left << setw(15) << "扩频（功率分配）:" << SF << "\n"
-        << left << setw(15) << "编码:" << "K = " << NBITS << ", N = " << N << "\n"
-        << left << setw(15) << "衰落块长度:" << BlockLen << "\n\n";
-
-    // 写入 SNR 表头
-    outfile << left << setw(10) << "SNR";
-    for (int i = 0; i < EbNoNUM; ++i) {
-        outfile << setw(12) << fixed << setprecision(2) << snr_dB[i];
-    }
-    outfile << "\n";
-    // —— 新增 EbN0 行 ——
-    outfile << left << setw(10) << "EbN0";
-    for (int i = 0; i < EbNoNUM; ++i) {
-        outfile << setw(12) << fixed << setprecision(2) << ebno_dB[i];
-    }
-    outfile << "\n";
-    outfile << "\n" << string(10 + EbNoNUM * 12, '-') << "\n";
-
-    // 写入 BER 数据行
-    outfile << left << setw(10) << "BER";
-    for (int i = 0; i < EbNoNUM; ++i) {
-        double avg_BER = 0.0;
-        for (int j = 0; j < BER[i].size(); ++j) {
-            avg_BER += BER[i][j];
-        }
-        avg_BER /= (NUM_FRAMES + 1); // 计算平均 BER
-        outfile << setw(12) << fixed << setprecision(8) << avg_BER; // 文件输出保留8位小数
-    }
-    outfile << "\n";
-
-    // 写入 PUPE 数据行
-    outfile << left << setw(10) << "PUPE";
-    for (int i = 0; i < EbNoNUM; ++i) {
-        double avg_PUPE = 0.0;
-        for (int j = 0; j < PUPE[i].size(); ++j) {
-            avg_PUPE += PUPE[i][j];
-        }
-        avg_PUPE /= (NUM_FRAMES + 1); // 计算平均 PUPE
-        outfile << setw(12) << fixed << setprecision(8) << avg_PUPE; // 文件输出保留8位小数
-    }
-    outfile << "\n";
-
-    // 写入累计错误比特数量
-    outfile << left << setw(10) << "ErrorBits";
-    for (int i = 0; i < EbNoNUM; ++i) {
-        int total_errors = 0;
-        for (int j = 0; j < BER[i].size(); ++j) { // 累计错误比特数量
-            total_errors += static_cast<int>(BER[i][j] * NUSERS * NBITS);
-        }
-        outfile << setw(12) << total_errors;
-    }
-    outfile << "\n";
-
-    // 写入分隔线
-    outfile << string(10 + EbNoNUM * 12, '=') << "\n\n";
-
-    outfile.close(); // 关闭文件
-}
+//
+//// 向数据存储文件写入数据
+//void WriteToFile() {
+//    // 打开文件
+//    ofstream outfile(filename, ios::app);
+//    if (!outfile.is_open()) {
+//        cerr << "无法打开文件: " << filename << endl;
+//        return;
+//    }
+//
+//    // 写入仿真头信息
+//    outfile << "仿真结束时间: " << GetCurrentTimeString() << "\n";
+//
+//    outfile << left << setw(15) << "用户数量:" << NUSERS << "\n"
+//        << left << setw(15) << "用户信息长度:" << NBITS << "\n"
+//        << left << setw(15) << "接收天线数量:" << Nr << "\n"
+//        << left << setw(15) << "扩频（功率分配）:" << SF << "\n"
+//        << left << setw(15) << "编码:" << "K = " << NBITS << ", N = " << N << "\n"
+//        << left << setw(15) << "衰落块长度:" << BlockLen << "\n\n";
+//
+//    // 写入 SNR 表头
+//    outfile << left << setw(10) << "SNR";
+//    for (int i = 0; i < EbNoNUM; ++i) {
+//        outfile << setw(12) << fixed << setprecision(2) << snr_dB[i];
+//    }
+//    outfile << "\n";
+//    // —— 新增 EbN0 行 ——
+//    outfile << left << setw(10) << "EbN0";
+//    for (int i = 0; i < EbNoNUM; ++i) {
+//        outfile << setw(12) << fixed << setprecision(2) << ebno_dB[i];
+//    }
+//    outfile << "\n";
+//    outfile << "\n" << string(10 + EbNoNUM * 12, '-') << "\n";
+//
+//    // 写入 BER 数据行
+//    outfile << left << setw(10) << "BER";
+//    for (int i = 0; i < EbNoNUM; ++i) {
+//        double avg_BER = 0.0;
+//        for (int j = 0; j < BER[i].size(); ++j) {
+//            avg_BER += BER[i][j];
+//        }
+//        avg_BER /= (NUM_FRAMES + 1); // 计算平均 BER
+//        outfile << setw(12) << fixed << setprecision(8) << avg_BER; // 文件输出保留8位小数
+//    }
+//    outfile << "\n";
+//
+//    // 写入 PUPE 数据行
+//    outfile << left << setw(10) << "PUPE";
+//    for (int i = 0; i < EbNoNUM; ++i) {
+//        double avg_PUPE = 0.0;
+//        for (int j = 0; j < PUPE[i].size(); ++j) {
+//            avg_PUPE += PUPE[i][j];
+//        }
+//        avg_PUPE /= (NUM_FRAMES + 1); // 计算平均 PUPE
+//        outfile << setw(12) << fixed << setprecision(8) << avg_PUPE; // 文件输出保留8位小数
+//    }
+//    outfile << "\n";
+//
+//    // 写入累计错误比特数量
+//    outfile << left << setw(10) << "ErrorBits";
+//    for (int i = 0; i < EbNoNUM; ++i) {
+//        int total_errors = 0;
+//        for (int j = 0; j < BER[i].size(); ++j) { // 累计错误比特数量
+//            total_errors += static_cast<int>(BER[i][j] * NUSERS * NBITS);
+//        }
+//        outfile << setw(12) << total_errors;
+//    }
+//    outfile << "\n";
+//
+//    // 写入分隔线
+//    outfile << string(10 + EbNoNUM * 12, '=') << "\n\n";
+//
+//    outfile.close(); // 关闭文件
+//}
 
 
 // 函数定义：加载 interleaver 矩阵

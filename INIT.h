@@ -15,7 +15,7 @@ string GetCurrentDate();
 string GetCurrentTimeString();
 void OpenDataFile();
 void PrintHeader();
-void PrintToConsole(int sim);
+void PrintToConsole();
 void WriteToFile();
 void load_file(const char* filename,
     vector<vector<int>>& ScrambleRule);

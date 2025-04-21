@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <atomic>
 
 using namespace std;
 
@@ -36,7 +37,10 @@ extern std::string filename;   // 数据保存的文件名
 extern std::vector<double> snr_dB;                         // SNR值向量（dB）
 extern std::vector<double> ebno_dB;                        // SNR值向量（dB）
 extern std::vector<double> snr;							   // SNR值（线性）
-extern std::vector<std::vector<double>> BER;               // 存储误码率
-extern std::vector<std::vector<double>> PUPE;              // 存储PUPE（假设为某种性能评估）
+extern std::vector<double> total_BER;
+extern std::vector<double> total_PUPE;
+
+// 定义全局院子变量
+extern std::atomic<int> cnt;
 
 #endif // GLOBAL_VARIABLES_H
