@@ -22,16 +22,16 @@ const int L = 32;                           // Polar Code 的 list size
 
 const double EbNoSTART = 4;
 const double EbNoSTEP = 2;
-const int EbNoNUM = 3;
+const int EbNoNUM = 5;
 
-const int NUM_FRAMES = 5000;               // 帧数量
+const int NUM_FRAMES = 10000;               // 帧数量
 const int NUM_PRINT = 100;                   // 打印显示间隔
 
 const bool IsFading = true;                 // 控制衰落模式
 const string CodeMode = "None";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
 const int IDMAitr = 15;                     // IDMA迭代次数
 
-const int BlockLen = 300;                               // 块衰落的长度
+const int BlockLen = 500;                               // 块衰落的长度
 const int BlockNum = round(FrameLen / BlockLen);        // 衰落块的数量
 
 
