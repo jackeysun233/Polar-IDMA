@@ -9,23 +9,23 @@ using namespace std;
 
 // 声明全局变量
 const int NUSERS = 1;                       // 活跃用户数量
-const int NBITS = 16;                      // 每个用户发送的比特数量
-const int SF = 150;                           // 扩频的倍数
-const int N = 32;                          // 编码后的码字长度(请根据CodeMode修改,32)(可能会有问题吗？？)
+const int NBITS = 10;                      // 每个用户发送的比特数量
+const int SF = 833;                           // 扩频的倍数
+const int N = 10;                          // 编码后的码字长度(请根据CodeMode修改,32)(可能会有问题吗？？)
 const int FrameLen = N * SF;                // 总的码字的长度
-const int Nr = 1;                           // 天线数量
-const int L = 1024;                           // Polar Code 的 list size
+const int Nr = 2;                           // 天线数量
+const int L = 32;                           // Polar Code 的 list size
 
-const double SNR_BEGIN = -11.76;
-const double SNR_END = -11.76;
-const int SNR_NUM = 1;
+const double SNR_BEGIN = -23;
+const double SNR_END = -19;
+const int SNR_NUM = 5;
 
 const int NUM_FRAMES = 50000;               // 帧数量
-const int NUM_PRINT = 10;                  // 打印显示间隔
+const int NUM_PRINT = 100;                  // 打印显示间隔
 
-const bool IsFading = false;                 // 控制衰落模式
-const string CodeMode = "Polar";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
-const int BlockLen = 800;                   // 块衰落的长度
+const bool IsFading = true;                 // 控制衰落模式
+const string CodeMode = "None";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
+const int BlockLen = 500;                   // 块衰落的长度
 const int IDMAitr = 25;                     // IDMA迭代次数
 
 

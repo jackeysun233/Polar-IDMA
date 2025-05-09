@@ -89,7 +89,7 @@ void GenFadingCoff(vector<vector<vector<double>>>& FadingCoff) {
                 uniform_real_distribution<double> uniformDist(0.0, 1.0);
                 for (int block = 0; block < num_blocks; ++block) {
                     double U = uniformDist(rng);
-                    double h = sqrt(-2.0 * log(U)); // 瑞利分布的生成方式
+                    double h = sqrt(0.5)*sqrt(-2.0 * log(U)); // 瑞利分布的生成方式
 
                     // 填充对应的衰落系数
                     for (int i = block * BlockLen; i < (block + 1) * BlockLen && i < FrameLen; ++i) {
