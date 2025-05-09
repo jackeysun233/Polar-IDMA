@@ -17,12 +17,13 @@ const int NBITS = 10;                       // 每个用户发送的比特数量
 const int SF = 833;                         // 扩频的倍数
 const int N = 10;                           // 编码后的码字长度(请根据CodeMode修改,32)
 const int FrameLen = N * SF;                // 总的码字的长度
-const int Nr = 1;                           // 天线数量
+const int Nr = 2;                           // 接收机天线数量
+const int Nt = 1;                           // 发送机天线数量
 const int L = 32;                           // Polar Code 的 list size
 
-const double EbNoSTART = 4;
-const double EbNoSTEP = 2;
-const int EbNoNUM = 5;
+const double EbNoSTART = 7;
+const double EbNoSTEP = 1;
+const int EbNoNUM = 2;
 
 const int NUM_FRAMES = 10000;               // 帧数量
 const int NUM_PRINT = 100;                   // 打印显示间隔
@@ -207,20 +208,42 @@ void PureIDMA(
         double sigma = sqrt(1.0 / snr[q]);    // 计算当前snr下的噪声功率
 
         // 生成信道衰落系数
+
+        int diversity = Nt * Nr; // 信道分集增益等与接收机天线x发送机天线
+        int energy = Nr; // 增加发送机天线，增加接收机收集能量
+
         if (IsFading) {
             for (int j = 0; j < NUSERS; j++) {
                 for (int kk = 0; kk < BlockNum; kk++) {
+
+                    double h_tmp = 0.0;
+
+                    for (int d = 0; d < diversity; ++d) {
+                        auto U1 = rayleigh(generator);
+                        auto U2 = rayleigh(generator);
+
+                        h_tmp += sqrt(U1 * U1 + U2 * U2);
+                    }
+
                     auto U1 = rayleigh(generator);
                     auto U2 = rayleigh(generator);
                     for (int ii = 0; ii < BlockLen; ii++)
-                        H[j][BlockLen * kk + ii] = sqrt(U1 * U1 + U2 * U2);
+                        H[j][BlockLen * kk + ii] = sqrt(energy) * h_tmp/diversity;
                 }
                 if (BlockLen * BlockNum < FrameLen) {
                     int RemainLen = FrameLen - BlockLen * BlockNum;
-                    auto U1 = rayleigh(generator);
-                    auto U2 = rayleigh(generator);
+
+                    double h_tmp = 0.0;
+
+                    for (int d = 0; d < diversity; ++d) {
+                        auto U1 = rayleigh(generator);
+                        auto U2 = rayleigh(generator);
+
+                        h_tmp += sqrt(U1 * U1 + U2 * U2);
+                    }
+
                     for (int ii = 0; ii < RemainLen; ii++)
-                        H[j][BlockLen * BlockNum + ii] = sqrt(U1 * U1 + U2 * U2);
+                        H[j][BlockLen * BlockNum + ii] = sqrt(energy) * h_tmp/diversity;
                 }
             }
         }
@@ -270,7 +293,7 @@ void PureIDMA(
 
 
 int main() {
-    ThreadPool pool(4);     // 使用的线程数量
+    ThreadPool pool(8);     // 使用的线程数量
 
     OpenDataFile();         // 打开数据存储文件
     GenSNR();               // 生成待仿真的SNR向量
