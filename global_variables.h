@@ -11,6 +11,7 @@ extern const int NUSERS;     // 活跃用户数量
 extern const int NBITS;      // 每个用户发送的比特数量
 extern const int SF;         // 扩频的倍数
 extern const int Nr;         // 天线数量
+extern const int Nt;         // 天线数量
 extern const int N;			 // 编码后的码字长度
 extern const int FrameLen;   // 总的码字的长度
 extern const int L;

@@ -88,12 +88,21 @@ void GenFadingCoff(vector<vector<vector<double>>>& FadingCoff) {
                 // 每个块的衰落系数
                 uniform_real_distribution<double> uniformDist(0.0, 1.0);
                 for (int block = 0; block < num_blocks; ++block) {
-                    double U = uniformDist(rng);
-                    double h = sqrt(0.5)*sqrt(-2.0 * log(U)); // 瑞利分布的生成方式
+
+                    double h_tmp = 0.0;
+                    for (int nt = 0; nt < Nt; ++nt) {
+                        double U = uniformDist(rng);
+                        double h = sqrt(0.5) * sqrt(-2.0 * log(U)); // 瑞利分布的生成方式
+
+                        h_tmp += h;
+                    }
+
+                    //double U = uniformDist(rng);
+                    //double h = sqrt(0.5)*sqrt(-2.0 * log(U)); // 瑞利分布的生成方式
 
                     // 填充对应的衰落系数
                     for (int i = block * BlockLen; i < (block + 1) * BlockLen && i < FrameLen; ++i) {
-                        FadingCoff[nr][user][i] = h; // 用生成的衰落系数填充每个用户的每个符号
+                        FadingCoff[nr][user][i] = h_tmp/Nt; // 用生成的衰落系数填充每个用户的每个符号
                     }
                 }
             }

@@ -13,11 +13,12 @@ const int NBITS = 10;                      // 每个用户发送的比特数量
 const int SF = 833;                           // 扩频的倍数
 const int N = 10;                          // 编码后的码字长度(请根据CodeMode修改,32)(可能会有问题吗？？)
 const int FrameLen = N * SF;                // 总的码字的长度
-const int Nr = 2;                           // 天线数量
+const int Nr = 1;                           // 天线数量
+const int Nt = 1;
 const int L = 32;                           // Polar Code 的 list size
 
 const double SNR_BEGIN = -23;
-const double SNR_END = -19;
+const double SNR_END = -15;
 const int SNR_NUM = 5;
 
 const int NUM_FRAMES = 50000;               // 帧数量
