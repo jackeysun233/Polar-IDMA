@@ -12,24 +12,24 @@ using namespace std;
 using namespace std::chrono;
 
 // 声明全局变量
-const int NUSERS = 1;                       // 活跃用户数量
-const int NBITS = 10;                       // 每个用户发送的比特数量
-const int SF = 833;                         // 扩频的倍数
-const int N = 10;                           // 编码后的码字长度(请根据CodeMode修改,32)
+const int NUSERS = 84;                       // 活跃用户数量
+const int NBITS = 100;                       // 每个用户发送的比特数量
+const int SF = 78;                         // 扩频的倍数
+const int N = 128;                           // 编码后的码字长度(请根据CodeMode修改,32)
 const int FrameLen = N * SF;                // 总的码字的长度
-const int Nr = 2;                           // 接收机天线数量
+const int Nr = 1;                           // 接收机天线数量
 const int Nt = 1;                           // 发送机天线数量
 const int L = 32;                           // Polar Code 的 list size
 
-const double EbNoSTART = 7;
-const double EbNoSTEP = 1;
-const int EbNoNUM = 2;
+const double EbNoSTART = 5;
+const double EbNoSTEP = 0.5;
+const int EbNoNUM = 1;
 
-const int NUM_FRAMES = 10000;               // 帧数量
-const int NUM_PRINT = 100;                   // 打印显示间隔
+const int NUM_FRAMES = 1500;               // 帧数量
+const int NUM_PRINT = 10;                   // 打印显示间隔
 
 const bool IsFading = true;                 // 控制衰落模式
-const string CodeMode = "None";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
+const string CodeMode = "Polar";             // 控制IDMA的编码方式（"Polar" for polar coded IDMA;"None" for pure IDMA;）
 const int IDMAitr = 15;                     // IDMA迭代次数
 
 const int BlockLen = 500;                               // 块衰落的长度
@@ -293,7 +293,7 @@ void PureIDMA(
 
 
 int main() {
-    ThreadPool pool(8);     // 使用的线程数量
+    ThreadPool pool(12);     // 使用的线程数量
 
     OpenDataFile();         // 打开数据存储文件
     GenSNR();               // 生成待仿真的SNR向量
