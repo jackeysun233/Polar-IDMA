@@ -16,7 +16,7 @@ const int FrameLen = N * SF;                // 总的码字的长度
 const int Nr = 1;                           // 天线数量
 const int Nt = 1;
 const int L = 32;                           // Polar Code 的 list size
-
+ 
 const double SNR_BEGIN = -23;
 const double SNR_END = -15;
 const int SNR_NUM = 5;
